@@ -4,49 +4,6 @@
 #include <algorithm>
 #include <queue>
 
-/*allData.push_back(*separate->data[pos]); // prelomni kljuc iz oca
-		//uzima desnog, ako nema desnog onda levog brata koji je takodje popunjen
-		Node* Brother = (separate->father->pointers[pos + 1] ? separate->father->pointers[pos + 1] : separate->father->pointers[pos - 1]);
-		for (int i = 0; i < Brother->currElems; i++)allData.push_back(*Brother->data[i]);
-		Node* fath = separate->father;
-		sort(allData.begin(), allData.end());
-
-		deleteKeys(separate);
-		deleteKeys(Brother);
-
-		Node* firstNode = separate->father->pointers[pos + 1] ? separate : separate->father->pointers[pos - 1];
-
-		for (int i = 0; i < firstNum; i++) {
-			firstNode->data[i] = new string{ allData[i] };
-		}
-		inserted += firstNum + 1;
-
-		Node* secondNode = separate->father->pointers[pos + 1] ? separate->father->pointers[pos + 1] : separate;
-		for (int i = 0; i < secondNum; i++) {
-			secondNode->data[i] = new string{ allData[i + firstNum + 1] };
-		}
-		inserted += secondNum;
-
-		if (inserted != n) {// ako se uzme 3 granicnik mora da ima 3 cvora
-			inserted++;
-
-			Node* thirdNode = new Node;
-			for (int i = 0; i < thirdNum; i++) {
-				thirdNode->data[i] = new string{ allData[i + firstNum + secondNum + 2] };
-			}
-			inserted += thirdNum;
-		}
-
-
-		//napravimo 3 cvora i saljemo sad u oca
-		if (separate->father->currElems + 2 < separate->father->maxPointers() - 1) {
-			//ubacujemo ta dva kljuca i prepovezujemo
-		}
-		else {
-			//cuvamo pokazivace iz oca pre pos, oca delimo
-		}*/
-
-
 //TO DO PRELAMANJE U OPSTEM SLUCAJU, BRISANJE, SEARCH
 using namespace std;
 
@@ -233,8 +190,11 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 		sort(nodeData.begin(), nodeData.end());
 		delete fath->data[pos - 1];
 		fath->data[keyInd] = nullptr;
-		if (fath->currElems + nodeData.size() < fath->maxKeys()) {
+		if (fath->currElems + 1 < fath->maxKeys()) {
 			fath->data[keyInd] = new string{ nodeData[0] };
+			//sve pokazivace posle pos za 1 gore i tako i kljuceve posle keyind
+			for (int i = fath->currElems; i > pos; i--) fath->pointers[i - 1] = fath->pointers[i];
+			for (int i = fath->currElems-1; i > keyInd+1; i--) fath->data[i - 1] = fath->data[i];
 			fath->data[keyInd+1] = new string{ nodeData[1] };
 			fath->pointers[pos + 1] = thirdNode;
 			fath->currElems++;
@@ -363,5 +323,11 @@ int main() {
 	insertNode(root, "k");
 	insertNode(root, "z");
 	insertNode(root, "x");
+	insertNode(root, "w");
+	insertNode(root, "y");
+	insertNode(root, "v");
+	insertNode(root, "l");
+	insertNode(root, "f");
+	insertNode(root, "g");
 	cout << root;
 }
