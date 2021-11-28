@@ -232,7 +232,7 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 			}
 			for (int i = 0; i <= right->currElems; i++) {
 				right->pointers[i] = rootPointers[i+left->currElems+1];
-				right->pointers[i]->father = left;
+				right->pointers[i]->father = right;
 			}
 		}
 
@@ -364,8 +364,8 @@ int main() {
 	insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
-	/*insertNode(root, "z");
-	insertNode(root, "x");
+	insertNode(root, "z");
+	/*insertNode(root, "x");
 	insertNode(root, "w");
 	insertNode(root, "y");
 	insertNode(root, "v");
