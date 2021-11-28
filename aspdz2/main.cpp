@@ -8,25 +8,26 @@
 using namespace std;
 
 const int nn = 5; //red stabla br pokazivaca
-
+const int order = 5; //2 * floor((2 * nn - 2) / 3) + 1; OVO JE MAX BR STRINGOVA, SAMO KOREN IMA TOLIKO OSTALI
+//SE POPUNJAVAJU DO NN-1
 
 struct Node {
 
 private:
 
 	void init() {
-		for (int i = 0; i < nn - 1; i++) {
+		for (int i = 0; i < order; i++) {
 			data[i] = nullptr;
 			pointers[i] = nullptr;
 		}
-		pointers[nn] = nullptr;
+		pointers[order] = nullptr;
 		currElems = 0;
 		father = nullptr;
 	}
 
 public:
-	string* data[nn - 1];
-	Node* pointers[nn];
+	string* data[order];
+	Node* pointers[order + 1];
 	int leaf;
 	int root;
 	int currElems;
@@ -64,16 +65,18 @@ public:
 			qu.pop();
 			
 			if (*tmp->data[0] == "XXXXX")os << endl;
+			else {
+				os << "[";
+				for (int i = 0; i < tmp->currElems; i++) {
+					os << *tmp->data[i] << " ";
+				}
+				os << "]   ";
 
-			for (int i = 0; i < tmp->currElems; i++) {
-				os << *tmp->data[i] << " ";
+				for (int i = 0; i < tmp->currElems; i++) {
+					if (tmp->pointers[i])qu.push(tmp->pointers[i]);
+				}
+				qu.push(gran);
 			}
-
-			
-			for (int i = 0; i <= tmp->currElems; i++) {
-				qu.push(tmp->pointers[i]);
-			}
-			qu.push(gran);
 		}
 		return os;
 	}
@@ -82,14 +85,24 @@ public:
 Node* findLeafToInsert(Node* root, string d, int& pos) {
 	Node* temp = root, * find = root;
 	pos = -1;
+	int greater = 0;
 	while (temp) {
 		find = temp;
 		for (int i = 0; i < temp->currElems; i++) {
-			if (*temp->data[i] > d)temp = temp->pointers[i], pos = i;
+			if (*temp->data[i] > d) {
+				temp = temp->pointers[i], pos = i;
+				if (!temp)return find;
+			}
+			else {
+				greater++;
+			}
 		}
+		if (greater == temp->currElems)pos = temp->currElems, temp = temp->pointers[temp->currElems]; //ako je veci od svih
 	}
 	return find;
 }
+
+//a b 
 
 void deleteKeys(Node* nod) {
 	for (int i = 0; i < nod->currElems; i++) {
@@ -119,30 +132,42 @@ void nodeSeparating(Node* separate, string d, int pos) {//pos nam pozicija prelo
 		Node* firstNode = new Node;
 		for (int i = 0; i < firstNum; i++) {
 			firstNode->data[i] = new string{ allData[i] };
+			firstNode->currElems++;
 		}
 		separate->data[0] = new string{ allData[firstNum] };
 		separate->pointers[0] = firstNode;
+		separate->pointers[0]->leaf = 1;
+		separate->pointers[0]->root = 0;
 		inserted += firstNum + 1;
 		firstNode->father = separate;
+		separate->currElems -= firstNode->currElems;
 
 		Node* secondNode = new Node;
 		for (int i = 0; i < secondNum; i++) {
 			secondNode->data[i] = new string{ allData[i + firstNum + 1] };
+			secondNode->currElems++;
 		}
 		inserted += secondNum;
 		secondNode->father = separate;
 		separate->pointers[1] = secondNode;
+		separate->pointers[1]->leaf = 1;
+		separate->pointers[1]->root = 0;
+		separate->currElems -= secondNode->currElems;
 
 		if (inserted != n) {// ako se uzme 3 granicnik mora da ima 3 cvora
-			separate->data[0] = new string{ allData[inserted] };
+			separate->data[1] = new string{ allData[inserted] };
 			inserted++;
 
 			Node* thirdNode = new Node;
 			for (int i = 0; i < thirdNum; i++) {
 				thirdNode->data[i] = new string{ allData[i + firstNum + secondNum + 2] };
+				thirdNode->currElems++;
 			}
 			thirdNode->father = separate;
-			separate->pointers[0] = thirdNode;
+			separate->pointers[2] = thirdNode;
+			separate->pointers[2]->leaf = 1;
+			separate->pointers[2]->root = 0;
+			separate->currElems -= thirdNode->currElems;
 			inserted += thirdNum;
 		}
 	}
@@ -224,15 +249,9 @@ void insertNode(Node* root, string d) {
 	else {
 		Node* place = findLeafToInsert(root, d, positionOfSon);
 		if (place->currElems < place->maxPointers()) {//ima mesta u cvoru
-			int i = 0;
-			while (place->data[i] != nullptr) {
-				if (d < *place->data[i])break;
-				i++;
-			}
-			int k = 0;
-			for (int j = place->currElems; j >= i; j--)place->data[j] = place->data[j - 1], k++;
-				place->data[k] = new string{ d };
-				place->currElems++;
+			for (int j = place->currElems; j > positionOfSon; j--)place->data[j] = place->data[j - 1];
+			place->data[positionOfSon] = new string{ d };
+			place->currElems++;
 		}
 		else {//prelivanje ako nema bracu prelamanje
 			int flag = 0;
@@ -265,9 +284,14 @@ void insertNode(Node* root, string d) {
 
 
 int main() {
-	/*Node* root = new Node;
+	Node* root = new Node;
 	root->leaf = 0;
 	root->root = 1;
 	insertNode(root, "a");
-	cout << root;*/
+	insertNode(root, "c");
+	insertNode(root, "b");
+	insertNode(root, "d");
+	insertNode(root, "e");
+	insertNode(root, "jk");
+	cout << root;
 }
