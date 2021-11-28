@@ -93,6 +93,7 @@ Node* findLeafToInsert(Node* root, string d, int& pos) {
 			if (*temp->data[i] > d) {
 				temp = temp->pointers[i], pos = i;
 				if (!temp)return find;
+				break;
 			}
 			else {
 				greater++;
@@ -212,14 +213,22 @@ void nodePouring(Node* pour, Node* brother, int pos, string d, int rl) {//pos lo
 	Node* fath = pour->father;
 	for (int i = 0; i < pour->currElems; i++)allData.push_back(*pour->data[i]);
 	for (int i = 0; i < brother->currElems; i++)allData.push_back(*brother->data[i]);
-	int pozition = (pos == 0 ? 0 : pos - 1);
+	int pozition; // = (rl == 1 ? pos : pos - 1);
+	if (rl == 1) {
+		pozition = pos;
+	}
+	else {
+		pozition = pos - 1;
+		if (pozition < 0)pozition = 0;
+	}
+	
 	string s = *pour->father->data[pozition];
 	allData.push_back(*pour->father->data[pozition]);
 	allData.push_back(d);
 
 	sort(allData.begin(), allData.end());
 
-	int mid = allData.size() / 2;
+	int mid = (allData.size()-1) / 2; //zbog parnih brojeva da zaokruzi na donji
 	delete fath->data[pozition];
 	fath->data[pozition] = new string{ allData[mid] };
 
@@ -290,7 +299,8 @@ void insertNode(Node* root, string d) {
 						rl = 1; 
 					}
 				}
-				else if (leftBrother(place, pointerIndex, keyIndex)) { //da li je u opsegu
+				if (leftBrother(place, pointerIndex, keyIndex)) { //da li je u opsegu
+					separatingrl = 0;
 					if (!leftBrother(place, pointerIndex, keyIndex)->isFull()) {
 						help = leftBrother(place, pointerIndex, keyIndex);
 						flag = 1;
@@ -329,5 +339,8 @@ int main() {
 	insertNode(root, "l");
 	insertNode(root, "f");
 	insertNode(root, "g");
+	insertNode(root, "h");
+	insertNode(root, "m");
+	insertNode(root, "u");
 	cout << root;
 }
