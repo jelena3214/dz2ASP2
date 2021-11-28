@@ -125,7 +125,7 @@ public:
 		return os;
 	}
 };
-
+void insertNode(Node* root, string d);
 Node* findLeafToInsert(Node* root, string d, int& pos) {
 	Node* temp = root, * find = root;
 	pos = -1;
@@ -187,7 +187,7 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 		separate->currElems -= firstNode->currElems - 1;
 
 		Node* secondNode = new Node;
-		for (int i = 0; i < allData.size()-mid - 1; i++) {
+		for (int i = 0; i < allData.size() - mid - 1; i++) {
 			secondNode->data[i] = new string{ allData[i + mid + 1] };
 			secondNode->currElems++;
 		}
@@ -198,9 +198,50 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 		separate->currElems -= secondNode->currElems;
 	}
 	else {//PRELAMANJE CVORA KOJI NIJE KOREN?
-		int brotherPos = rl == 1 ? pos : pos - 1;
+		int brotherPos = rl == 1 ? pos : pos - 1; //pos je pzicija pointera 
 		Node* fath = separate->father;
 		Node* brother = fath->pointers[brotherPos];
+		for (int i = 0; i < separate->currElems; i++)allData.push_back(*separate->data[i]);
+		for (int i = 0; i < brother->currElems; i++)allData.push_back(*brother->data[i]);
+		allData.push_back(d);
+		int keyInd = (pos == 0) ? 0 : pos - 1;
+		allData.push_back(*fath->data[keyInd]);
+		sort(allData.begin(), allData.end());
+
+		deleteKeys(separate);
+		deleteKeys(brother);
+		separate->currElems = 0;
+		brother->currElems = 0;
+		if (rl) {
+			for (int i = 0; i < firstNum; i++)separate->data[i] = new string{ allData[i] }, separate->currElems++;
+			for (int i = firstNum + 1, k = 0; i < secondNum + firstNum + 1; i++)brother->data[k++] = new string{ allData[i] }, brother->currElems++;
+		}
+		else {
+			for (int i = 0; i < firstNum; i++)brother->data[i] = new string{ allData[i] }, brother->currElems++;
+			for (int i = firstNum + 1, k = 0; i < secondNum + firstNum + 1; i++)separate->data[k++] = new string{ allData[i] }, separate->currElems++;
+		}
+
+		Node* thirdNode = new Node;
+		for (int i = secondNum + 2 + firstNum, k = 0; i < allData.size(); i++)thirdNode->data[k++] = new string{ allData[i] }, thirdNode->currElems++;
+		thirdNode->father = fath;
+		thirdNode->root = 0;
+		thirdNode->leaf = 1;
+
+		vector<string> nodeData;
+		nodeData.push_back(allData[firstNum]);
+		nodeData.push_back(allData[firstNum + secondNum + 1]);
+		sort(nodeData.begin(), nodeData.end());
+		delete fath->data[pos - 1];
+		fath->data[keyInd] = nullptr;
+		if (fath->currElems + nodeData.size() < fath->maxKeys()) {
+			fath->data[keyInd] = new string{ nodeData[0] };
+			fath->data[keyInd+1] = new string{ nodeData[1] };
+			fath->pointers[pos + 1] = thirdNode;
+			fath->currElems++;
+		}
+		else {
+			cout << "nema mesta";
+		}
 
 	}
 
@@ -226,7 +267,7 @@ void nodePouring(Node* pour, Node* brother, int pos, string d, int rl) {//pos lo
 	deleteKeys(brother);
 	pour->currElems = 0;
 	brother->currElems = 0;
-	int k = 0;
+
 	if (rl) {
 		for (int i = 0; i < mid; i++)pour->data[i] = new string{ allData[i] }, pour->currElems++;
 		for (int i = mid + 1, k = 0; i < allData.size(); i++)brother->data[k++] = new string{ allData[i] }, brother->currElems++;
@@ -238,21 +279,23 @@ void nodePouring(Node* pour, Node* brother, int pos, string d, int rl) {//pos lo
 
 }
 
-Node* rightBrother(Node* tmp, int& index) {
+Node* rightBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
 	Node* fath = tmp->father;
 	for (int i = 0; i <= fath->currElems; i++) {
-		if (fath->pointers[i] == tmp)index = i;
+		if (fath->pointers[i] == tmp)pointerIndex = i;
 	}
-	if(index+1 <= fath->currElems)return fath->pointers[index + 1];
+	keyIndex = pointerIndex - 1;
+	if(pointerIndex +1 <= fath->currElems)return fath->pointers[pointerIndex + 1];
 	return nullptr;
 }
 
-Node* leftBrother(Node* tmp, int& index) {
+Node* leftBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
 	Node* fath = tmp->father;
 	for (int i = 0; i <= fath->currElems; i++) {
-		if (fath->pointers[i] == tmp)index = i;
+		if (fath->pointers[i] == tmp)pointerIndex = i;
 	}
-	if(index-1 >= 0)return fath->pointers[index - 1];
+	keyIndex = pointerIndex - 1;
+	if(pointerIndex-1 >= 0)return fath->pointers[pointerIndex - 1];
 	return nullptr;
 }
 
@@ -271,7 +314,7 @@ void insertNode(Node* root, string d) {
 			place->currElems++;
 		}
 		else {//prelivanje ako nema bracu prelamanje
-			int flag = 0, rl = 0, separatingrl = 0, index = 0;;
+			int flag = 0, rl = 0, separatingrl = 0, pointerIndex = 0, keyIndex = 0;
 			if (place->root) {//kod njega nema prelivanja samo prelamanje
 				nodeSeparating(place, d, positionOfSon,0);
 			}
@@ -279,25 +322,25 @@ void insertNode(Node* root, string d) {
 				Node* help = nullptr;
 				//prelivanje ako moze, ako ne prelamamo
 				
-				if (rightBrother(place, index)) {//da li je u opsegu
+				if (rightBrother(place, pointerIndex, keyIndex)) {//da li je u opsegu
 					separatingrl = 1;
-					if (!rightBrother(place, index)->isFull()) {
-						help = rightBrother(place, index);
+					if (!rightBrother(place, pointerIndex, keyIndex)->isFull()) {
+						help = rightBrother(place, pointerIndex, keyIndex);
 						flag = 1;
 						rl = 1; 
 					}
 				}
-				else if (leftBrother(place, index)) { //da li je u opsegu
-					if (!leftBrother(place, index)->isFull()) {
-						help = leftBrother(place, index);
+				else if (leftBrother(place, pointerIndex, keyIndex)) { //da li je u opsegu
+					if (!leftBrother(place, pointerIndex, keyIndex)->isFull()) {
+						help = leftBrother(place, pointerIndex, keyIndex);
 						flag = 1;
 					}
 				}
 				if (flag) {
-					nodePouring(place, help, index, d, rl);
+					nodePouring(place, help, pointerIndex, d, rl);
 				}
 				else {
-					nodeSeparating(place, d, index, separatingrl);
+					nodeSeparating(place, d, pointerIndex, separatingrl);
 				}
 			}
 
@@ -319,6 +362,6 @@ int main() {
 	insertNode(root, "j");
 	insertNode(root, "k");
 	insertNode(root, "z");
-	//insertNode(root, "x");
+	insertNode(root, "x");
 	cout << root;
 }
