@@ -7,8 +7,8 @@
 //TO DO PRELAMANJE U OPSTEM SLUCAJU, BRISANJE, SEARCH
 using namespace std;
 
-const int nn = 5; //red stabla br pokazivaca
-const int order = 5; //2 * floor((2 * nn - 2) / 3) + 1; OVO JE MAX BR STRINGOVA, SAMO KOREN IMA TOLIKO OSTALI
+const int nn = 3; //red stabla br pokazivaca
+const int order = 2; //2 * floor((2 * nn - 2) / 3) + 1; OVO JE MAX BR STRINGOVA, SAMO KOREN IMA TOLIKO OSTALI
 //SE POPUNJAVAJU DO NN-1
 
 struct Node {
@@ -60,19 +60,26 @@ public:
 
 		Node* gran = new Node;
 		gran->data[0] = new string{ "XXXXX" };
+		qu.push(gran);
 
 		while (!qu.empty()) {
 			Node* tmp = qu.front();
 			qu.pop();
-			
-			if (*tmp->data[0] == "XXXXX")os << endl;
+
+			if (qu.size() == 0) {
+				return os;
+			}
+			if (*tmp->data[0] == "XXXXX") {
+				os << endl;
+				qu.push(gran);
+			}
 			else {
 				os << "[";
 				for (int i = 0; i < tmp->currElems; i++) {
 					os << *tmp->data[i] << " ";
 				}
 				os << "]   ";
-				qu.push(gran);
+				
 				for (int i = 0; i <= tmp->currElems; i++) {
 					if (tmp->pointers[i])qu.push(tmp->pointers[i]);
 				}
@@ -116,6 +123,7 @@ void deleteKeys(Node* nod) {
 	}
 	//nod->currElems = 0;
 }
+
 
 void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozicija prelomnog cvora, rl = 1 kad ima desnog brata
 	int n = separate->currElems + (separate->root ? 1 : 2);
@@ -210,7 +218,22 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 			fath->currElems++;
 		}
 		else {
-			cout << "nema mesta";
+			Node* rootPointers[order + 2];
+			for (int i = 0; i <= fath->currElems; i++)rootPointers[i] = fath->pointers[i], fath->pointers[i] = nullptr;
+			rootPointers[fath->currElems + 1] = thirdNode;
+			fath->currElems--;
+			//pravimo 2 nova cvora, prelamamo koren
+			insertNode(fath, nodeData[0]);
+			insertNode(fath, nodeData[1]);
+			Node* left = fath->pointers[0], *right = fath->pointers[1];
+			for (int i = 0; i <= left->currElems; i++) {
+				left->pointers[i] = rootPointers[i];
+				left->pointers[i]->father = left;
+			}
+			for (int i = 0; i <= right->currElems; i++) {
+				right->pointers[i] = rootPointers[i+left->currElems+1];
+				right->pointers[i]->father = left;
+			}
 		}
 
 	}
@@ -299,18 +322,19 @@ void insertNode(Node* root, string d) {
 			else {
 				Node* help = nullptr;
 				//prelivanje ako moze, ako ne prelamamo
-				
+				int hasright = 0;
 				if (rightBrother(place, pointerIndex, keyIndex)) {//da li je u opsegu
 					separatingrl = 1;
 					if (!rightBrother(place, pointerIndex, keyIndex)->isFull()) {
 						help = rightBrother(place, pointerIndex, keyIndex);
+						hasright = 1; //za prelamanje prioritet desni kao ima oba
 						flag = 1;
 						rl = 1; 
 					}
 				}
 				if (leftBrother(place, pointerIndex, keyIndex)) { //da li je u opsegu
 					//separatingrl = 0;
-					if (!leftBrother(place, pointerIndex, keyIndex)->isFull()) {
+					if (!leftBrother(place, pointerIndex, keyIndex)->isFull()&&!hasright) {
 						help = leftBrother(place, pointerIndex, keyIndex);
 						flag = 1;
 					}
@@ -340,7 +364,7 @@ int main() {
 	insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
-	insertNode(root, "z");
+	/*insertNode(root, "z");
 	insertNode(root, "x");
 	insertNode(root, "w");
 	insertNode(root, "y");
@@ -352,5 +376,6 @@ int main() {
 	insertNode(root, "m");
 	insertNode(root, "u");
 	insertNode(root, "n");
+	insertNode(root, "o");*/
 	cout << root;
 }
