@@ -4,6 +4,49 @@
 #include <algorithm>
 #include <queue>
 
+/*allData.push_back(*separate->data[pos]); // prelomni kljuc iz oca
+		//uzima desnog, ako nema desnog onda levog brata koji je takodje popunjen
+		Node* Brother = (separate->father->pointers[pos + 1] ? separate->father->pointers[pos + 1] : separate->father->pointers[pos - 1]);
+		for (int i = 0; i < Brother->currElems; i++)allData.push_back(*Brother->data[i]);
+		Node* fath = separate->father;
+		sort(allData.begin(), allData.end());
+
+		deleteKeys(separate);
+		deleteKeys(Brother);
+
+		Node* firstNode = separate->father->pointers[pos + 1] ? separate : separate->father->pointers[pos - 1];
+
+		for (int i = 0; i < firstNum; i++) {
+			firstNode->data[i] = new string{ allData[i] };
+		}
+		inserted += firstNum + 1;
+
+		Node* secondNode = separate->father->pointers[pos + 1] ? separate->father->pointers[pos + 1] : separate;
+		for (int i = 0; i < secondNum; i++) {
+			secondNode->data[i] = new string{ allData[i + firstNum + 1] };
+		}
+		inserted += secondNum;
+
+		if (inserted != n) {// ako se uzme 3 granicnik mora da ima 3 cvora
+			inserted++;
+
+			Node* thirdNode = new Node;
+			for (int i = 0; i < thirdNum; i++) {
+				thirdNode->data[i] = new string{ allData[i + firstNum + secondNum + 2] };
+			}
+			inserted += thirdNum;
+		}
+
+
+		//napravimo 3 cvora i saljemo sad u oca
+		if (separate->father->currElems + 2 < separate->father->maxPointers() - 1) {
+			//ubacujemo ta dva kljuca i prepovezujemo
+		}
+		else {
+			//cuvamo pokazivace iz oca pre pos, oca delimo
+		}*/
+
+
 //TO DO PRELAMANJE U OPSTEM SLUCAJU, BRISANJE, SEARCH
 using namespace std;
 
@@ -114,7 +157,7 @@ void deleteKeys(Node* nod) {
 	//nod->currElems = 0;
 }
 
-void nodeSeparating(Node* separate, string d, int pos) {//pos nam pozicija prelomnog cvora
+void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozicija prelomnog cvora, rl = 1 kad ima desnog brata
 	int n = separate->currElems + (separate->root ? 1 : 2);
 	int inserted = 0;
 
@@ -124,103 +167,46 @@ void nodeSeparating(Node* separate, string d, int pos) {//pos nam pozicija prelo
 
 	vector<string> allData;
 
-	for (int i = 0; i < separate->currElems; i++)allData.push_back(*separate->data[i]);
-	allData.push_back(d);
-
-	if (separate->root) {//koren nemamo razdelni oko koga prelamamo
+	if (separate->root) {//koren lomimo na 2 cvora
+		for (int i = 0; i < separate->currElems; i++)allData.push_back(*separate->data[i]);
+		allData.push_back(d);
 		sort(allData.begin(), allData.end());
 
 		deleteKeys(separate);
-
+		int mid = allData.size() / 2;
 		Node* firstNode = new Node;
-		for (int i = 0; i < firstNum; i++) {
+		for (int i = 0; i < mid; i++) {
 			firstNode->data[i] = new string{ allData[i] };
 			firstNode->currElems++;
 		}
-		separate->data[0] = new string{ allData[firstNum] };
+		separate->data[0] = new string{ allData[mid] };
 		separate->pointers[0] = firstNode;
 		separate->pointers[0]->leaf = 1;
 		separate->pointers[0]->root = 0;
-		inserted += firstNum + 1;
 		firstNode->father = separate;
 		separate->currElems -= firstNode->currElems - 1;
 
 		Node* secondNode = new Node;
-		for (int i = 0; i < n - inserted; i++) {
-			secondNode->data[i] = new string{ allData[i + firstNum + 1] };
+		for (int i = 0; i < allData.size()-mid - 1; i++) {
+			secondNode->data[i] = new string{ allData[i + mid + 1] };
 			secondNode->currElems++;
 		}
-		inserted += secondNum;
 		secondNode->father = separate;
 		separate->pointers[1] = secondNode;
 		separate->pointers[1]->leaf = 1;
 		separate->pointers[1]->root = 0;
 		separate->currElems -= secondNode->currElems;
-		/*
-		if (inserted != n) {// ako se uzme 3 granicnik mora da ima 3 cvora
-			separate->data[1] = new string{ allData[inserted] };
-			inserted++;
-
-			Node* thirdNode = new Node;
-			for (int i = 0; i < thirdNum; i++) {
-				thirdNode->data[i] = new string{ allData[i + firstNum + secondNum + 2] };
-				thirdNode->currElems++;
-			}
-			thirdNode->father = separate;
-			separate->pointers[2] = thirdNode;
-			separate->pointers[2]->leaf = 1;
-			separate->pointers[2]->root = 0;
-			separate->currElems -= thirdNode->currElems;
-			inserted += thirdNum;*/
 	}
 	else {//PRELAMANJE CVORA KOJI NIJE KOREN?
-		allData.push_back(*separate->data[pos]); // prelomni kljuc iz oca
-		//uzima desnog, ako nema desnog onda levog brata koji je takodje popunjen
-		Node* Brother = (separate->father->pointers[pos + 1] ? separate->father->pointers[pos + 1] : separate->father->pointers[pos - 1]);
-		for (int i = 0; i < Brother->currElems; i++)allData.push_back(*Brother->data[i]);
+		int brotherPos = rl == 1 ? pos : pos - 1;
 		Node* fath = separate->father;
-		sort(allData.begin(), allData.end());
-
-		deleteKeys(separate);
-		deleteKeys(Brother);
-
-		Node* firstNode = separate->father->pointers[pos + 1] ? separate : separate->father->pointers[pos - 1];
-
-		for (int i = 0; i < firstNum; i++) {
-			firstNode->data[i] = new string{ allData[i] };
-		}
-		inserted += firstNum + 1;
-
-		Node* secondNode = separate->father->pointers[pos + 1] ? separate->father->pointers[pos + 1] : separate;
-		for (int i = 0; i < secondNum; i++) {
-			secondNode->data[i] = new string{ allData[i + firstNum + 1] };
-		}
-		inserted += secondNum;
-
-		if (inserted != n) {// ako se uzme 3 granicnik mora da ima 3 cvora
-			inserted++;
-
-			Node* thirdNode = new Node;
-			for (int i = 0; i < thirdNum; i++) {
-				thirdNode->data[i] = new string{ allData[i + firstNum + secondNum + 2] };
-			}
-			inserted += thirdNum;
-		}
-
-
-		//napravimo 3 cvora i saljemo sad u oca
-		if (separate->father->currElems + 2 < separate->father->maxPointers() - 1) {
-			//ubacujemo ta dva kljuca i prepovezujemo
-		}
-		else {
-			//cuvamo pokazivace iz oca pre pos, oca delimo
-		}
+		Node* brother = fath->pointers[brotherPos];
 
 	}
 
 }
 
-void nodePouring(Node* pour, Node* brother, int pos) {//pos lokacija prelomnog
+void nodePouring(Node* pour, Node* brother, int pos, string d, int rl) {//pos lokacija prelomnog
 	vector<string> allData;
 	Node* fath = pour->father;
 	for (int i = 0; i < pour->currElems; i++)allData.push_back(*pour->data[i]);
@@ -228,6 +214,7 @@ void nodePouring(Node* pour, Node* brother, int pos) {//pos lokacija prelomnog
 	int pozition = (pos == 0 ? 0 : pos - 1);
 	string s = *pour->father->data[pozition];
 	allData.push_back(*pour->father->data[pozition]);
+	allData.push_back(d);
 
 	sort(allData.begin(), allData.end());
 
@@ -239,9 +226,15 @@ void nodePouring(Node* pour, Node* brother, int pos) {//pos lokacija prelomnog
 	deleteKeys(brother);
 	pour->currElems = 0;
 	brother->currElems = 0;
-
-	for (int i = 0; i < mid; i++)pour->data[i] = new string{ allData[i] }, pour->currElems++;
-	for (int i = mid + 1, k = 0; i < allData.size(); i++)brother->data[k++] = new string{ allData[i] }, brother->currElems++;
+	int k = 0;
+	if (rl) {
+		for (int i = 0; i < mid; i++)pour->data[i] = new string{ allData[i] }, pour->currElems++;
+		for (int i = mid + 1, k = 0; i < allData.size(); i++)brother->data[k++] = new string{ allData[i] }, brother->currElems++;
+	}
+	else {
+		for (int i = 0; i < mid; i++)brother->data[i] = new string{ allData[i] }, brother->currElems++;
+		for (int i = mid + 1, k = 0; i < allData.size(); i++)pour->data[k++] = new string{ allData[i] }, pour->currElems++;
+	}
 
 }
 
@@ -278,18 +271,20 @@ void insertNode(Node* root, string d) {
 			place->currElems++;
 		}
 		else {//prelivanje ako nema bracu prelamanje
-			int flag = 0;
+			int flag = 0, rl = 0, separatingrl = 0, index = 0;;
 			if (place->root) {//kod njega nema prelivanja samo prelamanje
-				nodeSeparating(place, d, positionOfSon);
+				nodeSeparating(place, d, positionOfSon,0);
 			}
 			else {
 				Node* help = nullptr;
 				//prelivanje ako moze, ako ne prelamamo
-				int index = 0;
+				
 				if (rightBrother(place, index)) {//da li je u opsegu
+					separatingrl = 1;
 					if (!rightBrother(place, index)->isFull()) {
 						help = rightBrother(place, index);
 						flag = 1;
+						rl = 1; 
 					}
 				}
 				else if (leftBrother(place, index)) { //da li je u opsegu
@@ -299,10 +294,10 @@ void insertNode(Node* root, string d) {
 					}
 				}
 				if (flag) {
-					nodePouring(place, help, index);
+					nodePouring(place, help, index, d, rl);
 				}
 				else {
-					//prelamanje
+					nodeSeparating(place, d, index, separatingrl);
 				}
 			}
 
@@ -323,5 +318,7 @@ int main() {
 	insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
+	insertNode(root, "z");
+	//insertNode(root, "x");
 	cout << root;
 }
