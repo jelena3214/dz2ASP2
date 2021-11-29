@@ -137,7 +137,7 @@ int smallerKeys(Node* root, string key) {
 	return num;
 }
 
-bool searchKey(Node* root, string key) {
+Node* searchKey(Node* root, string key, int& pos) {
 	Node* temp = root, * find = root;
 	int greater = 0, flag = 1;//flag znaci da je veci od svih
 	while (temp) {
@@ -146,11 +146,12 @@ bool searchKey(Node* root, string key) {
 			if (*temp->data[i] > key) {
 				flag = 0;
 				temp = temp->pointers[i];
-				if (!temp)return find;
+				if (!temp)return nullptr;
 				break;
 			}
 			else if(*temp->data[i] == key){
-				return true;
+				pos = i;
+				return temp;
 			}
 			else {
 				greater++;
@@ -160,7 +161,7 @@ bool searchKey(Node* root, string key) {
 		greater = 0;
 		flag = 1;
 	}
-	return false;
+	return nullptr;
 }
 
 Node* findLeafToInsert(Node* root, string d, int& pos) {
@@ -371,32 +372,6 @@ void nodeSeparating(Node* separate, string d, int pos, int rl, Node* root) {//po
 			sortVect(v);
 
 			rootpoint = v;
-			/*int pointI = 0, keyI = 0;
-			if (rightBrother(fath, pointI, keyI)) {
-				pointI++;
-				while (fath->father->pointers[pointI]){
-					for (int i = 0; i <= fath->father->pointers[pointI]->currElems; i++) {
-						rootpoint.push_back(fath->father->pointers[pointI]->pointers[i]);
-					}
-					pointI++;
-				}
-			}
-			else if (leftBrother(fath, pointI, keyI)) {
-				pointI--;
-				vector<Node*> help;
-
-				while (fath->father->pointers[pointI]) {
-					for (int i = 0; i <= fath->father->pointers[pointI]->currElems; i++) {
-						help.push_back(fath->father->pointers[pointI]->pointers[i]);
-					}
-					pointI--;
-					if (pointI < 0)break;
-				}
-				for (int i = 0; i < rootpoint.size(); i++)help.push_back(rootpoint[i]);
-				rootpoint = help;
-				sortVect(rootpoint);
-				
-			}*/
 
 			fath->currElems--;
 			//pravimo 2 nova cvora, prelamamo koren
@@ -535,18 +510,73 @@ void insertNode(Node* root, string d) {
 	}
 }
 
+bool isLeaf(Node* tmp) {
+	int l = 0;
+	for (int i = 0; i <= tmp->currElems; i++) {
+		if (tmp->pointers[i] != nullptr)l++;
+	}
+	return (l == 0);
+}
+
+void loan(Node* curr, Node* brother, int keyInd) {//pozicija razdvojnog kljuca
+	Node* fath = curr->father;
+	//brisemo mu taj sto treba i ubacujemo pozajmicu
+	int i = 0;
+	while (fath->data[keyInd] > curr->data[i++]);
+	curr->data[i] = fath->data[keyInd];
+	fath->data[keyInd] = brother->data[0];
+	for (int i = 0; i < brother->currElems; i++)brother->data[i] = brother->data[i + 1];
+	brother->currElems--;
+}
+
+void helpFromBrother(Node* curr) {
+	int pInd = 0, kInd = 0;
+	Node* rightB = rightBrother(curr, pInd, kInd);
+	Node* leftB = rightBrother(curr, pInd, kInd);
+	if (rightB) { //ako postoji
+		if (rightB->currElems - 1 >= rightB->minPointers() - 1) {//ima doiovljno
+			loan(curr, rightB, kInd);
+		}
+		
+	}
+	else if (leftB) {
+		if (leftB->currElems - 1 >= leftB->minPointers() - 1) {
+			loan(curr, leftB, kInd);
+		}
+	}
+	else {
+		Node* right2B = rightBrother(rightB, pInd, kInd);
+		Node* left2B = rightBrother(rightB, pInd, kInd);
+		if (right2B) { //ako postoji
+			if (right2B->currElems - 1 >= right2B->minPointers() - 1) {//ima doiovljno
+				//pozajmica
+			}
+
+		}
+		else if (left2B) {
+			if (left2B->currElems - 1 >= left2B->minPointers() - 1) {
+				//pozajmica
+			}
+		}
+	}
+}
+
 void deleteNode(Node* root, string del) {
 	//brisemo iz lista
 	//brisemo iz cvora, premestamo u list;
 	int pos = 0;
-	Node* place = findLeafToInsert(root, del, pos);
-	if (place->leaf) {//onda vidimo da li moze da se samo ukloni
+	Node* place = searchKey(root, del, pos); //ako je nullptr
+	if (isLeaf(place)) {//onda vidimo da li moze da se samo ukloni
 		if (place->currElems - 1 >= place->minPointers() - 1) {//moze samo da se ukloni
 			int index = 0;
 			for (int i = 0; i < place->currElems; i++) {//trazimo poziciju
 				if (*place->data[i] == del)index = i;
 			}
 			for (int i = index; i < place->currElems; i++)place->data[i] = place->data[i + 1]; //shift na levo
+			place->currElems--;
+		}
+		else {
+			helpFromBrother(place);
 		}
 	}
 	else {//dovodimo ga u list
@@ -560,7 +590,12 @@ void deleteNode(Node* root, string del) {
 		rightP->data[0] = tmp;
 		if (rightP->currElems - 1 >= rightP->minPointers() - 1) {//moze samo da se ukloni
 			for (int i = 0; i < rightP->currElems; i++)rightP->data[i] = rightP->data[i + 1]; //shift na levo
+			rightP->currElems--;
 		}
+		else {
+			//trazi pomoc
+		}
+		
 	}
 
 }
@@ -596,7 +631,9 @@ int main() {
 	insertNode(root, "o");
 	insertNode(root, "p");
 	insertNode(root, "q");
+	//if (searchKey(root, "q", pos) == nullptr)cout << "nema ga";
+	//else cout << "jej";
 	
-	//deleteNode(root, "g");
+	//deleteNode(root, "x");
 	cout << root;
 }
