@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <queue>
 
-//BRISANJE, meni
+//BRISANJE, meni DEBAG UMETANJA
 using namespace std;
 
 const int nn = 3; //red stabla br pokazivaca
