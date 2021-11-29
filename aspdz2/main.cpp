@@ -523,10 +523,24 @@ void loan(Node* curr, Node* brother, int keyInd) {//pozicija razdvojnog kljuca
 	//brisemo mu taj sto treba i ubacujemo pozajmicu
 	int i = 0;
 	if (curr->data[0] == nullptr)i = 0;
-	else{ while (fath->data[keyInd] > curr->data[i++]); }
+	else{ while (fath->data[keyInd] > curr->data[i++]); }//ide na kraj
 	curr->data[i] = fath->data[keyInd];
 	fath->data[keyInd] = brother->data[0];
 	for (int i = 0; i < brother->currElems; i++)brother->data[i] = brother->data[i + 1];
+	brother->currElems--;
+}
+
+void loanLeft(Node* curr, Node* brother, int keyInd) {//pozicija razdvojnog kljuca
+	Node* fath = curr->father;
+	//brisemo mu taj sto treba i ubacujemo pozajmicu
+	int i = 0;
+	if (curr->data[0] == nullptr)i = 0;
+	else { //stavljamo ga na pocetak najveci je
+		for (int i = curr->currElems - 1; i >= 0; i--)curr->data[i + 1] = curr->data[i]; //shift right
+	}
+	curr->data[i] = fath->data[keyInd];
+	fath->data[keyInd] = brother->data[brother->currElems-1];
+	brother->data[brother->currElems - 1] = nullptr;
 	brother->currElems--;
 }
 
@@ -546,25 +560,63 @@ bool helpFromBrother(Node* curr) {
 	}
 	else if (leftB) {
 		if (leftB->currElems - 1 > leftB->minPointers() - 1) {
-			if (pInd == rightB->currElems)kInd = pInd - 1;
-			else kInd = pInd;
-			loan(curr, leftB, kInd);
+			if (pInd == leftB->currElems)kInd = pInd - 1;
+			loanLeft(curr, leftB, kInd);
 			return true;
 		}
 	}
-	else {
+	else{
 		Node* right2B = rightBrother(rightB, pInd, kInd);
 		Node* left2B = leftBrother(rightB, pInd, kInd);
-		if (right2B) { //ako postoji
+		if (rightB && right2B) { //ako postoji
 			if (right2B->currElems - 1 > right2B->minPointers() - 1) {//ima doiovljno
-				//pozajmica
+				if (pInd == right2B->currElems)kInd = pInd - 1;
+				else kInd = pInd;
+
+
+				Node* fath = right2B->father;
+				string* tmp = fath->data[kInd];
+				fath->data[kInd] = right2B->data[0];
+				right2B->data[right2B->currElems - 1] = nullptr;
+				for (int i = 0; i < right2B->currElems; i++)right2B->data[i] = right2B->data[i + 1];
+				right2B->currElems--;
+
+				rightB->data[rightB->currElems] = tmp;
+				rightB->currElems++;
+
+				tmp = fath->data[kInd - 1];
+				fath->data[kInd - 1] = rightB->data[0];
+				for (int i = 0; i < rightB->currElems; i++)rightB->data[i] = rightB->data[i + 1];
+				rightB->currElems--;
+
+				curr->data[curr->currElems] = tmp;
+				//curr->currElems++;
 				return true;
 			}
 
 		}
-		else if (left2B) {
+		else if (leftB && left2B) {
 			if (left2B->currElems - 1 > left2B->minPointers() - 1) {
-				//pozajmica
+				if (pInd == left2B->currElems)kInd = pInd - 1;
+				Node* fath = left2B->father;
+				string* tmp = fath->data[kInd];
+				fath->data[kInd] = left2B->data[left2B->currElems - 1];
+				left2B->data[left2B->currElems - 1] = nullptr;
+				left2B->currElems--;
+				
+				for (int i = leftB ->currElems - 1; i >= 0; i--)leftB->data[i + 1] = leftB->data[i]; //SHIFT RIGHT
+				leftB->data[0] = tmp;
+				leftB->currElems++;
+
+				tmp = fath->data[kInd+1];
+				fath->data[kInd+1] = leftB->data[leftB->currElems - 1];
+				leftB->data[leftB->currElems - 1] = nullptr;
+				leftB->currElems--;
+
+				for (int i = curr->currElems - 1; i >= 0; i--)curr->data[i + 1] = curr->data[i]; //SHIFT RIGHT
+				curr->data[0] = tmp;
+				//curr->currElems++;
+
 				return true;
 			}
 		}
@@ -625,7 +677,7 @@ int main() {
 	insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
-	insertNode(root, "z");
+	/*insertNode(root, "z");
 	insertNode(root, "x");
 	insertNode(root, "w");
 	insertNode(root, "y");
@@ -644,8 +696,8 @@ int main() {
 	insertNode(root, "q");
 	//if (searchKey(root, "q", pos) == nullptr)cout << "nema ga";
 	//else cout << "jej";
-	
-	deleteNode(root, "x");
-	//deleteNode(root, "v");
+	*/
+	//deleteNode(root, "d");
+	//deleteNode(root, "e");
 	cout << root;
 }
