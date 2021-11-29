@@ -377,13 +377,29 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 			}
 			else {
 				Node* tmp = fath->father;
+				int i = 0; 
+				vector<Node*>brothers;
 
-				int k = 0;
-				for (int i = 0; i <= tmp->currElems; i++) {
-					for (int j = 0; j <= tmp->pointers[i]->currElems; j++) {
-						tmp->pointers[i]->pointers[j] = rootpoint[k++];
-						tmp->pointers[i]->pointers[j]->father = tmp->pointers[i];
+				while (tmp->currElems >= i) {
+					brothers.push_back(tmp->pointers[i++]);
+				}
+				//treba ubaciti sve iz nivoa u brothers
+				if (tmp->root != 1) {//ima bracu
+					brothers.clear();
+					for (int i = 0; i <= tmp->father->currElems; i++) {
+						for (int j = 0; j <= tmp->father->pointers[i]->currElems; j++) {
+							brothers.push_back(tmp->father->pointers[i]->pointers[j]);
+						}
 					}
+				}
+
+				int k = 0, l = 0;
+				while(brothers.size()>l) {
+					for (int j = 0; j <= brothers[l]->currElems; j++) {
+						brothers[l]->pointers[j] = rootpoint[k++];
+						brothers[l]->pointers[j]->father = brothers[l];
+					}
+					l++;
 				}
 			}
 		}
@@ -523,7 +539,7 @@ int main() {
 	insertNode(root, "a");
 	insertNode(root, "c");
 	insertNode(root, "b");
-	/*insertNode(root, "d");
+	insertNode(root, "d");
 	insertNode(root, "e");
 	insertNode(root, "i");
 	insertNode(root, "j");
@@ -540,9 +556,9 @@ int main() {
 	//cout << searchKey(root, "kl");
 	insertNode(root, "h");
 	insertNode(root, "m");
-	//insertNode(root, "u");
-	//insertNode(root, "n");
-	//insertNode(root, "o");
-	//deleteNode(root, "g");*/
+	insertNode(root, "u");
+	insertNode(root, "n");
+	insertNode(root, "o");
+	//deleteNode(root, "g");
 	cout << root;
 }
