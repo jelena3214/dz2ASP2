@@ -642,6 +642,7 @@ void deleteNode(Node* root, string del) {
 			place->data[index] = nullptr;
 			if(helpFromBrother(place))return;
 			//spajanje
+
 		}
 	}
 	else {//dovodimo ga u list
@@ -677,9 +678,9 @@ int main() {
 	insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
-	/*insertNode(root, "z");
+	insertNode(root, "z");
 	insertNode(root, "x");
-	insertNode(root, "w");
+	/*insertNode(root, "w");
 	insertNode(root, "y");
 	insertNode(root, "v");
 	insertNode(root, "l");
@@ -697,7 +698,7 @@ int main() {
 	//if (searchKey(root, "q", pos) == nullptr)cout << "nema ga";
 	//else cout << "jej";
 	*/
-	//deleteNode(root, "d");
+	deleteNode(root, "j");
 	//deleteNode(root, "e");
 	cout << root;
 }
