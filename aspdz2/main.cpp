@@ -204,7 +204,36 @@ int numOfPointers(Node* nod) {
 	return i;
 }
 
+bool greaterArray(string** s1, string** s2, int len1, int len2) {
+	/*if (len1 == 1 && len2 == 1) {
+		if (*s1[0] > *s2[0])return true;
+		else return false;
+	}
+	else {
+		int first = 0, second = 0;
+		for (int i = 0; i < len1; i++) {
+			if (*s1[i] > *s2[i])first++;
+			else second++;
+		}
+		if (first == second)return true;
+		else if (first > second)return true;
+		else return false;
+	}*/
+	if (*s1[0] > *s2[0])return true;
+	else return false;
+}
 
+void sortVect(vector<Node*>&point) {
+	for (int i = 0; i < point.size()-1; i++) {
+		for (int j = i + 1; j < point.size(); j++) {
+			if (greaterArray(point[i]->data, point[j]->data, point[i]->currElems, point[j]->currElems)) {//da li je prvi niz veci od drugog
+				Node* tmp = point[i];
+				point[i] = point[j];
+				point[j] = tmp;
+			}
+		}
+	}
+}
 
 void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozicija prelomnog cvora, rl = 1 kad ima desnog brata
 	int n = separate->currElems + (separate->root ? 1 : 2);
@@ -328,6 +357,7 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 				}
 				for (int i = 0; i < rootpoint.size(); i++)help.push_back(rootpoint[i]);
 				rootpoint = help;
+				sortVect(rootpoint);
 				
 			}
 
@@ -454,6 +484,37 @@ void insertNode(Node* root, string d) {
 	}
 }
 
+void deleteNode(Node* root, string del) {
+	//brisemo iz lista
+	//brisemo iz cvora, premestamo u list;
+	int pos = 0;
+	Node* place = findLeafToInsert(root, del, pos);
+	if (place->leaf) {//onda vidimo da li moze da se samo ukloni
+		if (place->currElems - 1 >= place->minPointers() - 1) {//moze samo da se ukloni
+			int index = 0;
+			for (int i = 0; i < place->currElems; i++) {//trazimo poziciju
+				if (*place->data[i] == del)index = i;
+			}
+			for (int i = index; i < place->currElems; i++)place->data[i] = place->data[i + 1]; //shift na levo
+		}
+	}
+	else {//dovodimo ga u list
+		Node* rightP = place->pointers[pos+1];
+		int index = 0;
+		for (int i = 0; i < place->currElems; i++) {//trazimo poziciju
+			if (*place->data[i] == del)index = i;
+		}
+		string* tmp = place->data[index];
+		place->data[index] = rightP->data[0];
+		rightP->data[0] = tmp;
+		if (rightP->currElems - 1 >= rightP->minPointers() - 1) {//moze samo da se ukloni
+			for (int i = 0; i < rightP->currElems; i++)rightP->data[i] = rightP->data[i + 1]; //shift na levo
+		}
+	}
+
+}
+
+
 
 int main() {
 	Node* root = new Node;
@@ -462,7 +523,7 @@ int main() {
 	insertNode(root, "a");
 	insertNode(root, "c");
 	insertNode(root, "b");
-	insertNode(root, "d");
+	/*insertNode(root, "d");
 	insertNode(root, "e");
 	insertNode(root, "i");
 	insertNode(root, "j");
@@ -477,10 +538,11 @@ int main() {
 	insertNode(root, "g");
 	//cout << smallerKeys(root, "c");
 	//cout << searchKey(root, "kl");
-	insertNode(root, "h"); //DEBAGUJ OVO
+	insertNode(root, "h");
 	insertNode(root, "m");
-	insertNode(root, "u");
-	insertNode(root, "n");
-	insertNode(root, "o");
+	//insertNode(root, "u");
+	//insertNode(root, "n");
+	//insertNode(root, "o");
+	//deleteNode(root, "g");*/
 	cout << root;
 }
