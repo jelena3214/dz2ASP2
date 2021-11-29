@@ -645,6 +645,9 @@ void merging(Node* curr) {
 				ind2 = pIndr1;
 				rightflag = 1;
 			}
+			else {
+				//spajamo ga sa bratom i to radimo do gore
+			}
 		}
 	}
 	else if (leftB) {
@@ -656,6 +659,9 @@ void merging(Node* curr) {
 			ind1 = kIndl;
 			ind2 = kIndl1;
 			leftflag = 1;
+		}
+		else {
+			//spajamo sa bratom do gore
 		}
 	}
 
@@ -745,7 +751,7 @@ void deleteNode(Node* root, string del) {
 
 
 int main() {
-	Node* root = new Node;
+	/*Node* root = new Node;
 	root->leaf = 0;
 	root->root = 1;
 	insertNode(root, "a");
@@ -756,7 +762,7 @@ int main() {
 	insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
-	/*insertNode(root, "z");
+	insertNode(root, "z");
 	insertNode(root, "x");
 	insertNode(root, "w");
 	insertNode(root, "y");
@@ -775,12 +781,69 @@ int main() {
 	insertNode(root, "q");
 	//if (searchKey(root, "q", pos) == nullptr)cout << "nema ga";
 	//else cout << "jej";
-	*/
+	
 	//deleteNode(root, "a");
 	//insertNode(root, "j");
 	//deleteNode(root, "b");
 	//deleteNode(root, "d");
 	//deleteNode(root, "i");
-	//deleteNode(root, "e");
-	cout << root;
+	deleteNode(root, "k");
+	deleteNode(root, "j");
+	cout << root;*/
+	Node* root = new Node;
+	root->leaf = 0;
+	root->root = 1;
+	while (1) {
+		cout << "===================================================== \n";
+		cout << " \t\tMENI \t \n ";
+		cout << "===================================================== \n";
+		cout << " 1.Kreiraj stablo\n";
+		cout << " 2.Ubaci element\n";
+		cout << " 3.Pronadji kljuc \n";
+		cout << " 4.Brisi kljuc \n";
+		cout << " 5.Svi manji kljucevi od zadatog \n";
+		cout << " 6.Ispisi stablo \n";
+		cout << " 7.Kraj programa \n";
+		int choice;
+		cin >> choice;
+		
+		if (choice == 1) {
+			root->leaf = 0;
+			root->root = 1;
+		}
+		if (choice == 2) {
+			string tmp;
+			cout << " Unesi string: ";
+			cin >> tmp;
+			insertNode(root, tmp);
+		}
+		if (choice == 3) {
+			string tmp;
+			cout << " Unesi string: ";
+			cin >> tmp;
+			int pos;
+			if (searchKey(root, tmp, pos)) {
+				cout << "Postoji u stalu\n";
+			}
+			else cout << "Nema ga u stablu\n";
+		}
+		if (choice == 4) {
+			string tmp;
+			cout << " Unesi string: ";
+			cin >> tmp;
+			deleteNode(root, tmp);
+		}if (choice == 5) {
+			string tmp;
+			cout << " Unesi string: ";
+			cin >> tmp;
+			cout << "Broj manjih od njega: ";
+			cout << smallerKeys(root, tmp) << endl;
+		}if (choice == 6) {
+			cout << root;
+			cout << endl;
+		}if (choice == 7) {
+			exit(1);
+		}
+
+	}
 }
