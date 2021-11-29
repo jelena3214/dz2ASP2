@@ -124,6 +124,13 @@ void deleteKeys(Node* nod) {
 	//nod->currElems = 0;
 }
 
+int numOfPointers(Node* nod) {
+	Node* tmp = nod;
+	int i = 0;
+	while (tmp->pointers[i++]);
+	return i;
+}
+
 
 void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozicija prelomnog cvora, rl = 1 kad ima desnog brata
 	int n = separate->currElems + (separate->root ? 1 : 2);
@@ -225,14 +232,36 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 			//pravimo 2 nova cvora, prelamamo koren
 			insertNode(fath, nodeData[0]);
 			insertNode(fath, nodeData[1]);
-			Node* left = fath->pointers[0], *right = fath->pointers[1];
-			for (int i = 0; i <= left->currElems; i++) {
-				left->pointers[i] = rootPointers[i];
-				left->pointers[i]->father = left;
+			Node* left, * right;
+			if (fath->root == 1) {
+				left = fath->pointers[0], right = fath->pointers[1];
+				for (int i = 0; i <= left->currElems; i++) {
+					left->pointers[i] = rootPointers[i];
+					left->pointers[i]->father = left;
+				}
+				for (int i = 0; i <= right->currElems; i++) {
+					right->pointers[i] = rootPointers[i + left->currElems + 1];
+					right->pointers[i]->father = right;
+				}
 			}
-			for (int i = 0; i <= right->currElems; i++) {
-				right->pointers[i] = rootPointers[i+left->currElems+1];
-				right->pointers[i]->father = right;
+			else {
+				Node* tmp = fath;
+				while(tmp->root == 0){
+					tmp = tmp->father;
+				}
+				left = tmp->pointers[0], right = tmp->pointers[1]; //penjemo se dok ne bude koren
+
+				int leftNum = numOfPointers(left) - 1;
+				int rightNum = numOfPointers(right) - 1;
+				int k = 0;
+				for (int i = leftNum; i <= left->currElems; i++) {
+					left->pointers[i] = rootPointers[k++];
+					left->pointers[i]->father = left;
+				}
+				for (int i = rightNum; i <= right->currElems; i++) {
+					right->pointers[i] = rootPointers[k++];
+					right->pointers[i]->father = right;
+				}
 			}
 		}
 
@@ -365,10 +394,10 @@ int main() {
 	insertNode(root, "j");
 	insertNode(root, "k");
 	insertNode(root, "z");
-	/*insertNode(root, "x");
+	insertNode(root, "x");
 	insertNode(root, "w");
 	insertNode(root, "y");
-	insertNode(root, "v");
+	/*insertNode(root, "v");
 	insertNode(root, "l");
 	insertNode(root, "f");
 	insertNode(root, "g");
