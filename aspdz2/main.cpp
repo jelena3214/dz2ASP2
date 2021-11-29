@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <queue>
 
-//TO DO PRELAMANJE U OPSTEM SLUCAJU, BRISANJE, SEARCH
+//BRISANJE, meni
 using namespace std;
 
 const int nn = 3; //red stabla br pokazivaca
@@ -90,6 +90,55 @@ public:
 	}
 };
 void insertNode(Node* root, string d);
+
+int smallerKeys(Node* root, string key) {
+	queue<Node*>qu;
+	qu.push(root);
+	vector<string>keys;
+	int num = 0, i = 0;
+	while (!qu.empty()) {
+		Node* tmp = qu.front();
+		qu.pop();
+		
+		for (int i = 0; i < tmp->currElems; i++) {
+			keys.push_back(*tmp->data[i]);
+		}
+
+		for (int i = 0; i <= tmp->currElems; i++) {
+			if (tmp->pointers[i])qu.push(tmp->pointers[i]);
+		}
+	}
+	sort(keys.begin(), keys.end());
+	while (keys[i++] < key)num++;
+	return num;
+}
+
+bool searchKey(Node* root, string key) {
+	Node* temp = root, * find = root;
+	int greater = 0, flag = 1;//flag znaci da je veci od svih
+	while (temp) {
+		find = temp;
+		for (int i = 0; i < temp->currElems; i++) {
+			if (*temp->data[i] > key) {
+				flag = 0;
+				temp = temp->pointers[i];
+				if (!temp)return find;
+				break;
+			}
+			else if(*temp->data[i] == key){
+				return true;
+			}
+			else {
+				greater++;
+			}
+		}
+		if (greater == temp->currElems && flag)temp = temp->pointers[temp->currElems]; //ako je veci od svih
+		greater = 0;
+		flag = 1;
+	}
+	return false;
+}
+
 Node* findLeafToInsert(Node* root, string d, int& pos) {
 	Node* temp = root, * find = root;
 	pos = -1;
@@ -330,6 +379,7 @@ Node* leftBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
 }
 
 void insertNode(Node* root, string d) {
+
 	int positionOfSon = 0;
 
 	if (root->data[0] == nullptr) {//prvi string umecemo
@@ -397,12 +447,14 @@ int main() {
 	insertNode(root, "x");
 	insertNode(root, "w");
 	insertNode(root, "y");
-	/*insertNode(root, "v");
+	insertNode(root, "v");
 	insertNode(root, "l");
 	insertNode(root, "f");
 	insertNode(root, "g");
-	insertNode(root, "h");
-	insertNode(root, "m");
+	cout << smallerKeys(root, "c");
+	//cout << searchKey(root, "kl");
+	//insertNode(root, "h"); DEBAGUJ OVO
+	/*insertNode(root, "m");
 	insertNode(root, "u");
 	insertNode(root, "n");
 	insertNode(root, "o");*/
