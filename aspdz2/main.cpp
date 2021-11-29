@@ -235,7 +235,28 @@ void sortVect(vector<Node*>&point) {
 	}
 }
 
-void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozicija prelomnog cvora, rl = 1 kad ima desnog brata
+vector<vector<Node*>> levelOrder(Node* root) {
+		vector < vector <Node*> > ans;
+		if (!root)return ans;
+		queue <Node*> q;
+		q.push(root);
+		while (!q.empty()) {
+			int sz = q.size();
+			vector<Node*> temp;
+			while (sz--) {
+				Node* curr = q.front();
+				temp.push_back(curr);
+				q.pop();
+				for (int i = 0; i <= curr->currElems; i++) {
+					if(curr->pointers[i])q.push(curr->pointers[i]);
+				}
+			}
+			ans.push_back(temp);
+		}
+		return ans;
+}
+
+void nodeSeparating(Node* separate, string d, int pos, int rl, Node* root) {//pos nam pozicija prelomnog cvora, rl = 1 kad ima desnog brata
 	int n = separate->currElems + (separate->root ? 1 : 2);
 	int inserted = 0;
 
@@ -334,7 +355,23 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 			rootPointers[fath->currElems + 1] = thirdNode;
 			rootpoint.push_back(thirdNode);
 			//moramo da preuzmemo sve od njegove brace od leva pa na desno:
-			int pointI = 0, keyI = 0;
+
+			vector<vector<Node*>>vec = levelOrder(root);
+			Node* tmp = fath;
+			int lev = 0;
+			while (tmp->root != 1) {
+				tmp = tmp->father;
+				lev++;
+			}
+			if (vec.size() == 1)lev = 0;
+			else lev++;
+			vector<Node*>v = vec[lev];
+			if (lev == 0)v.clear();
+			for (int i = 0; i < rootpoint.size(); i++)v.push_back(rootpoint[i]);
+			sortVect(v);
+
+			rootpoint = v;
+			/*int pointI = 0, keyI = 0;
 			if (rightBrother(fath, pointI, keyI)) {
 				pointI++;
 				while (fath->father->pointers[pointI]){
@@ -359,7 +396,7 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 				rootpoint = help;
 				sortVect(rootpoint);
 				
-			}
+			}*/
 
 			fath->currElems--;
 			//pravimo 2 nova cvora, prelamamo koren
@@ -380,18 +417,16 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 				int i = 0; 
 				vector<Node*>brothers;
 
-				while (tmp->currElems >= i) {
-					brothers.push_back(tmp->pointers[i++]);
+				int lev = 1;
+				while (tmp->root !=1) {
+					tmp = tmp->father;
+					lev++;
 				}
 				//treba ubaciti sve iz nivoa u brothers
-				if (tmp->root != 1) {//ima bracu
-					brothers.clear();
-					for (int i = 0; i <= tmp->father->currElems; i++) {
-						for (int j = 0; j <= tmp->father->pointers[i]->currElems; j++) {
-							brothers.push_back(tmp->father->pointers[i]->pointers[j]);
-						}
-					}
-				}
+				vector<vector<Node*>>vec = levelOrder(root);
+				brothers = vec[lev];
+
+
 
 				int k = 0, l = 0;
 				while(brothers.size()>l) {
@@ -466,7 +501,7 @@ void insertNode(Node* root, string d) {
 		else {//prelivanje ako nema bracu prelamanje
 			int flag = 0, rl = 0, separatingrl = 0, pointerIndex = 0, keyIndex = 0;
 			if (place->root) {//kod njega nema prelivanja samo prelamanje
-				nodeSeparating(place, d, positionOfSon,0);
+				nodeSeparating(place, d, positionOfSon,0, root);
 			}
 			else {
 				Node* help = nullptr;
@@ -492,7 +527,7 @@ void insertNode(Node* root, string d) {
 					nodePouring(place, help, pointerIndex, d, rl);
 				}
 				else {
-					nodeSeparating(place, d, pointerIndex, separatingrl);
+					nodeSeparating(place, d, pointerIndex, separatingrl, root);
 				}
 			}
 
@@ -559,6 +594,9 @@ int main() {
 	insertNode(root, "u");
 	insertNode(root, "n");
 	insertNode(root, "o");
+	insertNode(root, "p");
+	insertNode(root, "q");
+	
 	//deleteNode(root, "g");
 	cout << root;
 }
