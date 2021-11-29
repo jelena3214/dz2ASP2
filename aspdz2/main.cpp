@@ -522,43 +522,53 @@ void loan(Node* curr, Node* brother, int keyInd) {//pozicija razdvojnog kljuca
 	Node* fath = curr->father;
 	//brisemo mu taj sto treba i ubacujemo pozajmicu
 	int i = 0;
-	while (fath->data[keyInd] > curr->data[i++]);
+	if (curr->data[0] == nullptr)i = 0;
+	else{ while (fath->data[keyInd] > curr->data[i++]); }
 	curr->data[i] = fath->data[keyInd];
 	fath->data[keyInd] = brother->data[0];
 	for (int i = 0; i < brother->currElems; i++)brother->data[i] = brother->data[i + 1];
 	brother->currElems--;
 }
 
-void helpFromBrother(Node* curr) {
+bool helpFromBrother(Node* curr) {
 	int pInd = 0, kInd = 0;
 	Node* rightB = rightBrother(curr, pInd, kInd);
-	Node* leftB = rightBrother(curr, pInd, kInd);
+	Node* leftB = leftBrother(curr, pInd, kInd);
+	if (kInd < 0)kInd = 0;
 	if (rightB) { //ako postoji
-		if (rightB->currElems - 1 >= rightB->minPointers() - 1) {//ima doiovljno
+		if (rightB->currElems - 1 > rightB->minPointers() - 1) {//ima doiovljno
+			if (pInd == rightB->currElems)kInd = pInd - 1;
+			else kInd = pInd;
 			loan(curr, rightB, kInd);
+			return true;
 		}
-		
+
 	}
 	else if (leftB) {
-		if (leftB->currElems - 1 >= leftB->minPointers() - 1) {
+		if (leftB->currElems - 1 > leftB->minPointers() - 1) {
+			if (pInd == rightB->currElems)kInd = pInd - 1;
+			else kInd = pInd;
 			loan(curr, leftB, kInd);
+			return true;
 		}
 	}
 	else {
 		Node* right2B = rightBrother(rightB, pInd, kInd);
-		Node* left2B = rightBrother(rightB, pInd, kInd);
+		Node* left2B = leftBrother(rightB, pInd, kInd);
 		if (right2B) { //ako postoji
-			if (right2B->currElems - 1 >= right2B->minPointers() - 1) {//ima doiovljno
+			if (right2B->currElems - 1 > right2B->minPointers() - 1) {//ima doiovljno
 				//pozajmica
+				return true;
 			}
 
 		}
 		else if (left2B) {
-			if (left2B->currElems - 1 >= left2B->minPointers() - 1) {
+			if (left2B->currElems - 1 > left2B->minPointers() - 1) {
 				//pozajmica
+				return true;
 			}
 		}
-	}
+	}return false;
 }
 
 void deleteNode(Node* root, string del) {
@@ -566,34 +576,35 @@ void deleteNode(Node* root, string del) {
 	//brisemo iz cvora, premestamo u list;
 	int pos = 0;
 	Node* place = searchKey(root, del, pos); //ako je nullptr
+	int index = 0;
+	for (int i = 0; i < place->currElems; i++) {//trazimo poziciju
+		if (*place->data[i] == del)index = i;
+	}
 	if (isLeaf(place)) {//onda vidimo da li moze da se samo ukloni
-		if (place->currElems - 1 >= place->minPointers() - 1) {//moze samo da se ukloni
-			int index = 0;
-			for (int i = 0; i < place->currElems; i++) {//trazimo poziciju
-				if (*place->data[i] == del)index = i;
-			}
+		if (place->currElems - 1 > place->minPointers() - 1) {//moze samo da se ukloni
+			
 			for (int i = index; i < place->currElems; i++)place->data[i] = place->data[i + 1]; //shift na levo
 			place->currElems--;
 		}
 		else {
-			helpFromBrother(place);
+			place->data[index] = nullptr;
+			if(helpFromBrother(place))return;
+			//spajanje
 		}
 	}
 	else {//dovodimo ga u list
 		Node* rightP = place->pointers[pos+1];
-		int index = 0;
-		for (int i = 0; i < place->currElems; i++) {//trazimo poziciju
-			if (*place->data[i] == del)index = i;
-		}
 		string* tmp = place->data[index];
 		place->data[index] = rightP->data[0];
 		rightP->data[0] = tmp;
-		if (rightP->currElems - 1 >= rightP->minPointers() - 1) {//moze samo da se ukloni
+		if (rightP->currElems - 1 > rightP->minPointers() - 1) {//moze samo da se ukloni
 			for (int i = 0; i < rightP->currElems; i++)rightP->data[i] = rightP->data[i + 1]; //shift na levo
 			rightP->currElems--;
 		}
 		else {
-			//trazi pomoc
+			place->data[index] = nullptr;
+			if (helpFromBrother(place))return;
+			//spajanje
 		}
 		
 	}
@@ -634,6 +645,7 @@ int main() {
 	//if (searchKey(root, "q", pos) == nullptr)cout << "nema ga";
 	//else cout << "jej";
 	
-	//deleteNode(root, "x");
+	deleteNode(root, "x");
+	//deleteNode(root, "v");
 	cout << root;
 }
