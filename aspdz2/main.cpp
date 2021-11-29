@@ -91,6 +91,30 @@ public:
 };
 void insertNode(Node* root, string d);
 
+
+Node* rightBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
+	Node* fath = tmp->father;
+	if (fath == nullptr)return fath;
+	for (int i = 0; i <= fath->currElems; i++) {
+		if (fath->pointers[i] == tmp)pointerIndex = i;
+	}
+	keyIndex = pointerIndex - 1;
+	if (pointerIndex + 1 <= fath->currElems)return fath->pointers[pointerIndex + 1];
+	return nullptr;
+}
+
+Node* leftBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
+	Node* fath = tmp->father;
+	if (fath == nullptr)return fath;
+	for (int i = 0; i <= fath->currElems; i++) {
+		if (fath->pointers[i] == tmp)pointerIndex = i;
+	}
+	keyIndex = pointerIndex - 1;
+	if (pointerIndex - 1 >= 0)return fath->pointers[pointerIndex - 1];
+	return nullptr;
+}
+
+
 int smallerKeys(Node* root, string key) {
 	queue<Node*>qu;
 	qu.push(root);
@@ -179,6 +203,7 @@ int numOfPointers(Node* nod) {
 	while (tmp->pointers[i++]);
 	return i;
 }
+
 
 
 void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozicija prelomnog cvora, rl = 1 kad ima desnog brata
@@ -274,42 +299,61 @@ void nodeSeparating(Node* separate, string d, int pos, int rl) {//pos nam pozici
 			fath->currElems++;
 		}
 		else {
-			Node* rootPointers[order + 2];
-			for (int i = 0; i <= fath->currElems; i++)rootPointers[i] = fath->pointers[i], fath->pointers[i] = nullptr;
+			vector<Node*>rootpoint;
+			Node* rootPointers[order + 2]; //povecaj ovo
+			for (int i = 0; i <= fath->currElems; i++)rootPointers[i] = fath->pointers[i],rootpoint.push_back(fath->pointers[i]), fath->pointers[i] = nullptr;//preruzimamo njegove sinove
 			rootPointers[fath->currElems + 1] = thirdNode;
+			rootpoint.push_back(thirdNode);
+			//moramo da preuzmemo sve od njegove brace od leva pa na desno:
+			int pointI = 0, keyI = 0;
+			if (rightBrother(fath, pointI, keyI)) {
+				pointI++;
+				while (fath->father->pointers[pointI]){
+					for (int i = 0; i <= fath->father->pointers[pointI]->currElems; i++) {
+						rootpoint.push_back(fath->father->pointers[pointI]->pointers[i]);
+					}
+					pointI++;
+				}
+			}
+			else if (leftBrother(fath, pointI, keyI)) {
+				pointI--;
+				vector<Node*> help;
+
+				while (fath->father->pointers[pointI]) {
+					for (int i = 0; i <= fath->father->pointers[pointI]->currElems; i++) {
+						help.push_back(fath->father->pointers[pointI]->pointers[i]);
+					}
+					pointI--;
+					if (pointI < 0)break;
+				}
+				for (int i = 0; i < rootpoint.size(); i++)help.push_back(rootpoint[i]);
+				rootpoint = help;
+				
+			}
+
 			fath->currElems--;
 			//pravimo 2 nova cvora, prelamamo koren
 			insertNode(fath, nodeData[0]);
 			insertNode(fath, nodeData[1]);
 			Node* left, * right;
 			if (fath->root == 1) {
-				left = fath->pointers[0], right = fath->pointers[1];
-				for (int i = 0; i <= left->currElems; i++) {
-					left->pointers[i] = rootPointers[i];
-					left->pointers[i]->father = left;
-				}
-				for (int i = 0; i <= right->currElems; i++) {
-					right->pointers[i] = rootPointers[i + left->currElems + 1];
-					right->pointers[i]->father = right;
+				int k = 0;
+				for (int i = 0; i <= fath->currElems; i++) {
+					for (int j = 0; j <= fath->pointers[i]->currElems; j++) {
+						fath->pointers[i]->pointers[j] = rootpoint[k++];
+						fath->pointers[i]->pointers[j]->father = fath->pointers[i];
+					}
 				}
 			}
 			else {
-				Node* tmp = fath;
-				while(tmp->root == 0){
-					tmp = tmp->father;
-				}
-				left = tmp->pointers[0], right = tmp->pointers[1]; //penjemo se dok ne bude koren
+				Node* tmp = fath->father;
 
-				int leftNum = numOfPointers(left) - 1;
-				int rightNum = numOfPointers(right) - 1;
 				int k = 0;
-				for (int i = leftNum; i <= left->currElems; i++) {
-					left->pointers[i] = rootPointers[k++];
-					left->pointers[i]->father = left;
-				}
-				for (int i = rightNum; i <= right->currElems; i++) {
-					right->pointers[i] = rootPointers[k++];
-					right->pointers[i]->father = right;
+				for (int i = 0; i <= tmp->currElems; i++) {
+					for (int j = 0; j <= tmp->pointers[i]->currElems; j++) {
+						tmp->pointers[i]->pointers[j] = rootpoint[k++];
+						tmp->pointers[i]->pointers[j]->father = tmp->pointers[i];
+					}
 				}
 			}
 		}
@@ -356,26 +400,6 @@ void nodePouring(Node* pour, Node* brother, int pos, string d, int rl) {//pos lo
 		for (int i = mid + 1, k = 0; i < allData.size(); i++)pour->data[k++] = new string{ allData[i] }, pour->currElems++;
 	}
 
-}
-
-Node* rightBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
-	Node* fath = tmp->father;
-	for (int i = 0; i <= fath->currElems; i++) {
-		if (fath->pointers[i] == tmp)pointerIndex = i;
-	}
-	keyIndex = pointerIndex - 1;
-	if(pointerIndex +1 <= fath->currElems)return fath->pointers[pointerIndex + 1];
-	return nullptr;
-}
-
-Node* leftBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
-	Node* fath = tmp->father;
-	for (int i = 0; i <= fath->currElems; i++) {
-		if (fath->pointers[i] == tmp)pointerIndex = i;
-	}
-	keyIndex = pointerIndex - 1;
-	if(pointerIndex-1 >= 0)return fath->pointers[pointerIndex - 1];
-	return nullptr;
 }
 
 void insertNode(Node* root, string d) {
@@ -451,12 +475,12 @@ int main() {
 	insertNode(root, "l");
 	insertNode(root, "f");
 	insertNode(root, "g");
-	cout << smallerKeys(root, "c");
+	//cout << smallerKeys(root, "c");
 	//cout << searchKey(root, "kl");
-	//insertNode(root, "h"); DEBAGUJ OVO
-	/*insertNode(root, "m");
+	insertNode(root, "h"); //DEBAGUJ OVO
+	insertNode(root, "m");
 	insertNode(root, "u");
 	insertNode(root, "n");
-	insertNode(root, "o");*/
+	insertNode(root, "o");
 	cout << root;
 }
