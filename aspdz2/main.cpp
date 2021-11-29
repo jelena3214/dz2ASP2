@@ -565,62 +565,140 @@ bool helpFromBrother(Node* curr) {
 			return true;
 		}
 	}
-	else{
-		Node* right2B = rightBrother(rightB, pInd, kInd);
-		Node* left2B = leftBrother(rightB, pInd, kInd);
-		if (rightB && right2B) { //ako postoji
-			if (right2B->currElems - 1 > right2B->minPointers() - 1) {//ima doiovljno
-				if (pInd == right2B->currElems)kInd = pInd - 1;
-				else kInd = pInd;
+	Node* right2B = nullptr, * left2B = nullptr;
+	if(rightB)right2B = rightBrother(rightB, pInd, kInd);
+	if(left2B)left2B = leftBrother(rightB, pInd, kInd);//ZA NULL
+	if (rightB && right2B) { //ako postoji
+		if (right2B->currElems - 1 > right2B->minPointers() - 1) {//ima doiovljno
+			if (pInd == right2B->currElems)kInd = pInd - 1;
+			else kInd = pInd;
 
-
-				Node* fath = right2B->father;
-				string* tmp = fath->data[kInd];
-				fath->data[kInd] = right2B->data[0];
-				right2B->data[right2B->currElems - 1] = nullptr;
-				for (int i = 0; i < right2B->currElems; i++)right2B->data[i] = right2B->data[i + 1];
-				right2B->currElems--;
-
-				rightB->data[rightB->currElems] = tmp;
-				rightB->currElems++;
-
-				tmp = fath->data[kInd - 1];
-				fath->data[kInd - 1] = rightB->data[0];
-				for (int i = 0; i < rightB->currElems; i++)rightB->data[i] = rightB->data[i + 1];
-				rightB->currElems--;
-
-				curr->data[curr->currElems] = tmp;
-				//curr->currElems++;
-				return true;
-			}
-
+			Node* fath = right2B->father;
+			string* tmp = fath->data[kInd];
+			fath->data[kInd] = right2B->data[0];
+			right2B->data[0] = nullptr;
+			for (int i = 0; i < right2B->currElems; i++)right2B->data[i] = right2B->data[i + 1];
+			right2B->currElems--;
+			rightB->data[rightB->currElems] = tmp;
+			rightB->currElems++;
+			tmp = fath->data[kInd - 1];
+			fath->data[kInd - 1] = rightB->data[0];
+			for (int i = 0; i < rightB->currElems; i++)rightB->data[i] = rightB->data[i + 1];
+			rightB->currElems--;
+			curr->data[curr->currElems-1] = tmp;
+			//curr->currElems++;
+			return true;
 		}
-		else if (leftB && left2B) {
-			if (left2B->currElems - 1 > left2B->minPointers() - 1) {
-				if (pInd == left2B->currElems)kInd = pInd - 1;
-				Node* fath = left2B->father;
-				string* tmp = fath->data[kInd];
-				fath->data[kInd] = left2B->data[left2B->currElems - 1];
-				left2B->data[left2B->currElems - 1] = nullptr;
-				left2B->currElems--;
+
+	}
+	else if (leftB && left2B) {
+		if (left2B->currElems - 1 > left2B->minPointers() - 1) {
+			if (pInd == left2B->currElems)kInd = pInd - 1;
+			Node* fath = left2B->father;
+			string* tmp = fath->data[kInd];
+			fath->data[kInd] = left2B->data[left2B->currElems - 1];
+			left2B->data[left2B->currElems - 1] = nullptr;
+			left2B->currElems--;
 				
-				for (int i = leftB ->currElems - 1; i >= 0; i--)leftB->data[i + 1] = leftB->data[i]; //SHIFT RIGHT
-				leftB->data[0] = tmp;
-				leftB->currElems++;
+			for (int i = leftB ->currElems - 1; i >= 0; i--)leftB->data[i + 1] = leftB->data[i]; //SHIFT RIGHT
+			leftB->data[0] = tmp;
+			leftB->currElems++;
 
-				tmp = fath->data[kInd+1];
-				fath->data[kInd+1] = leftB->data[leftB->currElems - 1];
-				leftB->data[leftB->currElems - 1] = nullptr;
-				leftB->currElems--;
+			tmp = fath->data[kInd+1];
+			fath->data[kInd+1] = leftB->data[leftB->currElems - 1];
+			leftB->data[leftB->currElems - 1] = nullptr;
+			leftB->currElems--;
 
-				for (int i = curr->currElems - 1; i >= 0; i--)curr->data[i + 1] = curr->data[i]; //SHIFT RIGHT
-				curr->data[0] = tmp;
-				//curr->currElems++;
+			for (int i = curr->currElems - 1; i >= 0; i--)curr->data[i + 1] = curr->data[i]; //SHIFT RIGHT
+			curr->data[0] = tmp;
+			//curr->currElems++;
 
-				return true;
-			}
+			return true;
 		}
 	}return false;
+}
+
+void merging(Node* curr) {
+	//trazimo 2 brata;
+	int leftflag = 0, rightflag = 0, rlflag = 0;
+	Node* brother1  = nullptr, * brother2 = nullptr;
+	int ind1, ind2;
+	int pIndr = 0, kIndr = 0, pIndl = 0, kIndl = 0;
+	Node* rightB = rightBrother(curr, pIndr, kIndr);
+	Node* leftB = leftBrother(curr, pIndl, kIndl);
+//PROVERI OVE PIND KIND ITD	
+	if (rightB) {
+		if (leftB) {
+			brother1 = rightB;
+			brother2 = leftB;
+			ind1 = pIndr;
+			ind2 = pIndl;
+			rlflag = 1;
+		}
+		else {
+			int pIndr1 = 0, kIndr1 = 0;
+			Node* right2B = rightBrother(rightB, pIndr1, kIndr1);
+			if (right2B) {
+				brother1 = rightB;
+				brother2 = right2B;
+				ind1 = pIndr;
+				ind2 = pIndr1;
+				rightflag = 1;
+			}
+		}
+	}
+	else if (leftB) {
+		int pIndl1 = 0, kIndl1 = 0;
+		Node* left2B = leftBrother(leftB, pIndl1, kIndl1);
+		if (left2B) {
+			brother1 = leftB;
+			brother2 = left2B;
+			ind1 = kIndl;
+			ind2 = kIndl1;
+			leftflag = 1;
+		}
+	}
+
+	vector<string>allData;
+	Node* fath = curr->father;
+	int index = 0; //pozicija curr-a u ocu
+	for (int i = 0; i <= fath->currElems; i++)if (fath->pointers[i] == curr)index = i;
+
+	for (int i = 0; i < brother1->currElems; i++)allData.push_back(*brother1->data[i]);
+	for (int i = 0; i < brother2->currElems; i++)allData.push_back(*brother2->data[i]);
+	allData.push_back(*fath->data[ind1]);
+	allData.push_back(*fath->data[ind2]);
+	fath->currElems -= 2;
+	fath->data[ind1] = fath->data[ind2] = nullptr;//SHIFT PODATAKA
+
+	//REMOVE NULLPTR IZ NIZA
+
+	sort(allData.begin(), allData.end());
+	int mid = (allData.size() - 1) / 2;
+	int pos = (fath->currElems == 0 ? 0 : fath->currElems - 1);
+	fath->data[pos] = new string{ allData[mid] };
+	fath->currElems++;
+	//jedan cvor brisemo
+	deleteKeys(brother1);
+	deleteKeys(brother2);
+	brother1->currElems = brother2->currElems = 0;
+	int k = 0;
+	for (int i = 0; i < mid; i++)brother1->data[i] = new string{ allData[k++] }, brother1->currElems++;
+	for (int i = k + 1, l = 0; i < allData.size(); i++) {
+		brother2->data[l++] = new string{ allData[i] };
+		brother2->currElems++;
+	}
+	brother1->father = fath;
+	brother2->father = fath;
+	int pozition = (ind1 < ind2 ? ind1 : ind2);
+	int pozition2 = (ind1 < ind2 ? ind2 : ind1);
+	fath->pointers[pozition] = brother1;
+	fath->pointers[pozition2] = brother2;
+	
+	fath->pointers[index] = nullptr;
+	//REMOVE NULLPTR IZ NIZA
+	//AKO SE DESI DA U OCU SAD IMA MINIMALNO REKURZIJA;
+
 }
 
 void deleteNode(Node* root, string del) {
@@ -641,7 +719,7 @@ void deleteNode(Node* root, string del) {
 		else {
 			place->data[index] = nullptr;
 			if(helpFromBrother(place))return;
-			//spajanje
+			merging(place);
 
 		}
 	}
@@ -657,7 +735,7 @@ void deleteNode(Node* root, string del) {
 		else {
 			place->data[index] = nullptr;
 			if (helpFromBrother(place))return;
-			//spajanje
+			merging(place);
 		}
 		
 	}
@@ -678,9 +756,9 @@ int main() {
 	insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
-	insertNode(root, "z");
+	/*insertNode(root, "z");
 	insertNode(root, "x");
-	/*insertNode(root, "w");
+	insertNode(root, "w");
 	insertNode(root, "y");
 	insertNode(root, "v");
 	insertNode(root, "l");
@@ -698,7 +776,11 @@ int main() {
 	//if (searchKey(root, "q", pos) == nullptr)cout << "nema ga";
 	//else cout << "jej";
 	*/
-	deleteNode(root, "j");
+	//deleteNode(root, "a");
+	//insertNode(root, "j");
+	//deleteNode(root, "b");
+	//deleteNode(root, "d");
+	//deleteNode(root, "i");
 	//deleteNode(root, "e");
 	cout << root;
 }
