@@ -781,6 +781,14 @@ void merging(Node* curr, int p, Node*& root) {
 
 }
 
+Node* findSuccesor(Node* place, int pos) {
+	Node* cur = place->pointers[pos + 1];
+	while (!isLeaf(cur))
+		cur = cur->pointers[0];
+
+	return cur;
+}
+
 void deleteNode(Node*& root, string del) {
 	//brisemo iz lista
 	//brisemo iz cvora, premestamo u list;
@@ -804,17 +812,18 @@ void deleteNode(Node*& root, string del) {
 		}
 	}
 	else {//dovodimo ga u list
-		Node* rightP = place->pointers[pos+1];
+		Node* succ = findSuccesor(place, pos);
+		//Node* rightP = place->pointers[pos+1];
 		string* tmp = place->data[index];
-		place->data[index] = rightP->data[0];
-		rightP->data[0] = tmp;
-		if (rightP->currElems - 1 > rightP->minPointers() - 1) {//moze samo da se ukloni
-			for (int i = 0; i < rightP->currElems; i++)rightP->data[i] = rightP->data[i + 1]; //shift na levo
-			rightP->currElems--;
+		place->data[index] = succ->data[0];
+		succ->data[0] = tmp;
+		if (succ->currElems - 1 > succ->minPointers() - 1) {//moze samo da se ukloni
+			for (int i = 0; i < succ->currElems; i++)succ->data[i] = succ->data[i + 1]; //shift na levo
+			succ->currElems--;
 		}
 		else {
-			if (helpFromBrother(rightP))return;
-			merging(rightP, index, root);
+			if (helpFromBrother(succ))return;
+			merging(succ, index, root);
 		}
 		
 	}
@@ -843,18 +852,20 @@ int main() {
 	deleteNode(root, "g");
 	deleteNode(root, "f");
 	deleteNode(root, "e");
-	cout << root;
-	/*insertNode(root, "i");
+	
+	insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
 	insertNode(root, "z");
 	insertNode(root, "x");
 	insertNode(root, "w");
+	
 	insertNode(root, "y");
 	insertNode(root, "v");
 	insertNode(root, "l");
 	insertNode(root, "f");
 	insertNode(root, "g");
+	
 	//cout << smallerKeys(root, "c");
 	//cout << searchKey(root, "kl");
 	insertNode(root, "h");
@@ -864,6 +875,7 @@ int main() {
 	insertNode(root, "o");
 	insertNode(root, "p");
 	insertNode(root, "q");
+	
 	//if (searchKey(root, "q", pos) == nullptr)cout << "nema ga";
 	//else cout << "jej";
 	
@@ -872,9 +884,10 @@ int main() {
 	//deleteNode(root, "b");
 	//deleteNode(root, "d");
 	//deleteNode(root, "i");
-	deleteNode(root, "k");
-	deleteNode(root, "j");
-	cout << root;*/
+	
+	deleteNode(root, "k"); // KAD BRISE KOREN SAZIMANJE OVDE NEP
+	//deleteNode(root, "j");
+	cout << root;
 	/*Node* root = new Node;
 	root->leaf = 0;
 	root->root = 1;
