@@ -16,12 +16,7 @@ struct Node {
 private:
 
 	void init() {
-		for (int i = 0; i < order; i++) {
-			data[i] = nullptr;
-			pointers[i] = nullptr;
-		}
-		pointers[order] = nullptr;
-		currElems = 0;
+		Zeroize();
 		father = nullptr;
 	}
 
@@ -34,6 +29,17 @@ public:
 	Node* father;
 	Node() {
 		init();
+	}
+
+	void Zeroize()
+	{
+		for (int i = 0; i < order; i++)
+		{
+			data[i] = nullptr;
+			pointers[i] = nullptr;
+		}
+		pointers[order] = nullptr;
+		currElems = 0;
 	}
 
 	/*Node(const Node& n);
@@ -53,9 +59,7 @@ public:
 	~Node() {
 		for (int i = 0; i < order; i++) {
 			delete data[i];
-			delete pointers[i];
 		}
-		delete pointers[order];
 	}
 	int maxPointers() {
 		if (root)
@@ -671,65 +675,99 @@ void merging(Node* curr, int p, Node*& root) {
 			leftflag = 1;
 		}
 	}
+
 	if(rlflag == 0 && rightflag == 0 && leftflag == 0) {
 		curr->data[p] = nullptr;
 		vector<Node*>allNodes;
-		Node* tmp = curr;
-		while (tmp->root != 1) {
-			if (helpFromBrother(tmp))break;
+		Node* node = curr;
+		while (node->root != 1) 
+		{
+			if (helpFromBrother(node))break;
 			else {
-				Node* fath = tmp->father;
-				vector<Node*>vec;
-				vector<string>allData;
 				int pos = 0, pos1 = 0;
-				Node* leftB = leftBrother(tmp, pos1, pos);
-				Node* rightB = rightBrother(tmp, pos1, pos);
-				Node* br = (leftB == nullptr ? rightB : leftB);
+				Node* leftB = leftBrother(node, pos1, pos);
+				Node* rightB = rightBrother(node, pos1, pos);
 
-				for (int i = 0; i <= fath->currElems; i++) {
-					if(fath->pointers[i])vec.push_back(fath->pointers[i]);
-				}
-				for (int i = 0; i < fath->currElems; i++) {
-					if (fath->data[i])allData.push_back(*fath->data[i]);
-					fath->data[i] = nullptr;
-				}
-				for (int i = 0; i < vec.size(); i++) {
-					for (int j = 0; j < vec[i]->currElems; j++) {
-						if(vec[i]->data[j])allData.push_back(*vec[i]->data[j]), fath->currElems--;
-						
+				bool isBrotherOnTheLeft = (leftB != nullptr);
+				Node* brother = (isBrotherOnTheLeft ? leftB : rightB);
+				Node* father = node->father;
+
+				if (isLeaf(node))
+				{
+					node->Zeroize();
+					node->currElems = 2;
+
+					if (isBrotherOnTheLeft)
+					{
+						node->data[0] = new string(*brother->data[0]);
+						node->data[1] = father->data[0];
+					}
+					else 
+					{
+						node->data[0] = father->data[0];
+						node->data[1] = new string(*brother->data[0]);
 					}
 				}
-				sort(allData.begin(), allData.end());
-				
-				deleteKeys(fath);
-				fath->currElems = 0;
-				br->currElems = 0;
-				deleteKeys(br);
-				//stavljamo u brata kljuceve ostale
-				for (int i = 0; i < allData.size(); i++) {
-					br->data[i] = new string{ allData[i] };
-					br->currElems++;
+				else
+				{
+					Node* oldSonPtr = node->pointers[0];
+					node->Zeroize();
+					node->currElems = 2;
+
+					if (isBrotherOnTheLeft)
+					{
+						node->data[0] = new string(*brother->data[0]);
+						node->data[1] = father->data[0];
+						node->pointers[0] = brother->pointers[0];
+						node->pointers[1] = brother->pointers[1];
+						node->pointers[2] = oldSonPtr;
+					}
+					else
+					{
+						node->data[0] = father->data[0];
+						node->data[1] = new string(*brother->data[0]);
+						node->pointers[0] = oldSonPtr;
+						node->pointers[1] = brother->pointers[0];
+						node->pointers[2] = brother->pointers[1];
+					}
+
+					for (int i = 0; i < node->currElems + 1; i++)
+					{
+						if (node->pointers[i] == nullptr)
+						{
+							// Assert
+							exit(255);
+						}
+
+						node->pointers[i]->father = node;
+					}
 				}
-				allNodes.push_back(br);
+
+				delete brother;
+				father->Zeroize();
+				father->pointers[0] = node;
 			}
-			tmp = tmp->father;
+			node = node->father;
 			//ef bd poubaci a i c i spoji
 		}
-		allNodes[1]->pointers[2] = allNodes[0];
-		for (int i = 0; i <= allNodes[0]->currElems; i++)allNodes[0]->pointers[i] = nullptr;
-		allNodes[0]->father = allNodes[1];
-		allNodes[1]->root = 1;
-		allNodes[1]->leaf = 0;
-		allNodes[1]->father = nullptr;
-		root = allNodes[1];
-		/*for (int i = 0; i < allNodes[1]->currElems; i++) {
-			root->pointers[i] = allNodes[1]->pointers[i];
-			root->data[i] = allNodes[1]->data[i];
-			root->pointers[i]->currElems = allNodes[1]->pointers[i]->currElems;
+
+		if (node->root == 1 && node->data[0] == nullptr)
+		{
+			if (node->pointers[0] == nullptr)
+			{
+				// Assert
+				exit(255);
+			}
+
+			root = node->pointers[0];
+			root->father = nullptr;
+			root->root = 1;
+			root->leaf = 0;
+			node->pointers[0] = nullptr;
+
+			delete node;
 		}
-		root->pointers[allNodes[1]->currElems] = allNodes[1]->pointers[allNodes[1]->currElems];
-		root->pointers[allNodes[1]->currElems]->currElems = allNodes[1]->pointers[allNodes[1]->currElems]->currElems;
-		root->currElems = allNodes[1]->currElems;*/
+
 		return;
 	}
 
@@ -842,6 +880,56 @@ void data(Node* root) {
 }
 
 int main() {
+	/*Node* root = new Node;
+	root->leaf = 0;
+	root->root = 1;
+	insertNode(root, "a");
+	insertNode(root, "b");
+	insertNode(root, "c");
+	insertNode(root, "d");
+	insertNode(root, "e");
+	insertNode(root, "f");
+	insertNode(root, "g");
+	insertNode(root, "j");
+	insertNode(root, "k");
+	insertNode(root, "z");
+	deleteNode(root, "j");
+	deleteNode(root, "k");
+	deleteNode(root, "z");
+	deleteNode(root, "g");
+	deleteNode(root, "f");
+	deleteNode(root, "e");
+
+	insertNode(root, "i");
+	insertNode(root, "j");
+	insertNode(root, "k");
+	insertNode(root, "z");
+	insertNode(root, "x");
+	insertNode(root, "w");
+
+	insertNode(root, "y");
+	insertNode(root, "v");
+	insertNode(root, "l");
+	insertNode(root, "f");
+	insertNode(root, "g");
+	insertNode(root, "h");
+	insertNode(root, "m");
+	insertNode(root, "u");
+	insertNode(root, "n");
+	insertNode(root, "o");
+	insertNode(root, "p");
+	insertNode(root, "q");
+
+	deleteNode(root, "a");
+	//insertNode(root, "j");
+	//deleteNode(root, "b");
+	//deleteNode(root, "d");
+	//deleteNode(root, "i");
+
+	//deleteNode(root, "k"); // KAD BRISE KOREN SAZIMANJE OVDE NEP
+	//deleteNode(root, "j");
+	cout << root;
+	*/
 	Node* root = new Node;
 	root->leaf = 0;
 	root->root = 1;
