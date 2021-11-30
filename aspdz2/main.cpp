@@ -618,7 +618,10 @@ bool helpFromBrother(Node* curr) {
 	}return false;
 }
 
-void merging(Node* curr) {
+
+
+void merging(Node* curr, int p) {
+
 	//trazimo 2 brata;
 	int leftflag = 0, rightflag = 0, rlflag = 0;
 	Node* brother1  = nullptr, * brother2 = nullptr;
@@ -645,9 +648,6 @@ void merging(Node* curr) {
 				ind2 = pIndr1;
 				rightflag = 1;
 			}
-			else {
-				//spajamo ga sa bratom i to radimo do gore
-			}
 		}
 	}
 	else if (leftB) {
@@ -660,9 +660,43 @@ void merging(Node* curr) {
 			ind2 = kIndl1;
 			leftflag = 1;
 		}
-		else {
-			//spajamo sa bratom do gore
+	}
+	if(rlflag == 0 && rightflag == 0 && leftflag == 0) {
+		curr->data[p] = nullptr;
+		vector<Node*>allNodes;
+		Node* tmp = curr;
+		while (tmp->root != 1) {
+			if (helpFromBrother(tmp))break;
+			else {
+				Node* fath = tmp->father;
+				vector<Node*>vec;
+				vector<string>allData;
+				for (int i = 0; i <= fath->currElems; i++) {
+					if(fath->pointers[i])vec.push_back(fath->pointers[i]);
+				}
+				for (int i = 0; i < fath->currElems; i++) {
+					if (fath->data[i])allData.push_back(*fath->data[i]);
+					fath->data[i] = nullptr;
+				}
+				for (int i = 0; i < vec.size(); i++) {
+					for (int j = 0; j < vec[i]->currElems; j++) {
+						if(vec[i]->data[j])allData.push_back(*vec[i]->data[j]), fath->currElems--;
+						
+					}
+				}
+				sort(allData.begin(), allData.end());
+				deleteKeys(tmp);
+				tmp->currElems = 0;
+				for (int i = 0; i < allData.size(); i++) {
+					tmp->data[i] = new string{ allData[i] };
+					tmp->currElems++;
+				}
+				allNodes.push_back(tmp);
+			}
+			tmp = tmp->father;
+			//ef bd poubaci a i c i spoji
 		}
+		allNodes[1]->pointers[2] = allNodes[1];
 	}
 
 	vector<string>allData;
@@ -675,7 +709,7 @@ void merging(Node* curr) {
 	allData.push_back(*fath->data[ind1]);
 	allData.push_back(*fath->data[ind2]);
 	fath->currElems -= 2;
-	fath->data[ind1] = fath->data[ind2] = nullptr;//SHIFT PODATAKA
+	fath->data[ind1] = fath->data[ind2] = nullptr;
 
 	//REMOVE NULLPTR IZ NIZA
 
@@ -723,9 +757,9 @@ void deleteNode(Node* root, string del) {
 			place->currElems--;
 		}
 		else {
-			place->data[index] = nullptr;
+			//place->data[index] = nullptr;
 			if(helpFromBrother(place))return;
-			merging(place);
+			merging(place, index);
 
 		}
 	}
@@ -739,9 +773,8 @@ void deleteNode(Node* root, string del) {
 			rightP->currElems--;
 		}
 		else {
-			place->data[index] = nullptr;
-			if (helpFromBrother(place))return;
-			merging(place);
+			if (helpFromBrother(rightP))return;
+			merging(rightP, index);
 		}
 		
 	}
@@ -751,15 +784,26 @@ void deleteNode(Node* root, string del) {
 
 
 int main() {
-	/*Node* root = new Node;
+	Node* root = new Node;
 	root->leaf = 0;
 	root->root = 1;
 	insertNode(root, "a");
-	insertNode(root, "c");
 	insertNode(root, "b");
+	insertNode(root, "c");
 	insertNode(root, "d");
 	insertNode(root, "e");
-	insertNode(root, "i");
+	insertNode(root, "f");
+	insertNode(root, "g");
+	insertNode(root, "j");
+	insertNode(root, "k");
+	insertNode(root, "z");
+	deleteNode(root, "j");
+	deleteNode(root, "k");
+	deleteNode(root, "z");
+	deleteNode(root, "g");
+	//deleteNode(root, "e");
+	cout << root;
+	/*insertNode(root, "i");
 	insertNode(root, "j");
 	insertNode(root, "k");
 	insertNode(root, "z");
@@ -790,7 +834,7 @@ int main() {
 	deleteNode(root, "k");
 	deleteNode(root, "j");
 	cout << root;*/
-	Node* root = new Node;
+	/*Node* root = new Node;
 	root->leaf = 0;
 	root->root = 1;
 	while (1) {
@@ -845,5 +889,5 @@ int main() {
 			exit(1);
 		}
 
-	}
+	}*/
 }
