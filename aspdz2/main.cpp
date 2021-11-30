@@ -3,8 +3,8 @@
 #include <vector>
 #include <algorithm>
 #include <queue>
+#include <fstream>
 
-//BRISANJE, meni DEBAG UMETANJA
 using namespace std;
 
 const int nn = 3; //red stabla br pokazivaca
@@ -107,7 +107,6 @@ public:
 };
 void insertNode(Node* root, string d);
 
-
 Node* rightBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
 	Node* fath = tmp->father;
 	if (fath == nullptr)return fath;
@@ -129,7 +128,6 @@ Node* leftBrother(Node* tmp, int& pointerIndex, int& keyIndex) {
 	if (pointerIndex - 1 >= 0)return fath->pointers[pointerIndex - 1];
 	return nullptr;
 }
-
 
 int smallerKeys(Node* root, string key) {
 	queue<Node*>qu;
@@ -203,8 +201,6 @@ Node* findLeafToInsert(Node* root, string d, int& pos) {
 	}
 	return find;
 }
-
-//a b 
 
 void deleteKeys(Node* nod) {
 	for (int i = 0; i < nod->currElems; i++) {
@@ -634,8 +630,6 @@ bool helpFromBrother(Node* curr) {
 	}return false;
 }
 
-
-
 void merging(Node* curr, int p, Node*& root) {
 
 	//trazimo 2 brata;
@@ -830,65 +824,25 @@ void deleteNode(Node*& root, string del) {
 
 }
 
+//DATOTEKA
+void data(Node* root) {
+	ifstream MyReadFile;
+	MyReadFile.open("t.txt");
 
+	string key, line;
+	vector<string> translations;
+	struct TreeNode* node;
+
+	while (getline(MyReadFile, key)) {
+		getline(MyReadFile, line);
+		insertNode(root, line);
+	}
+
+	MyReadFile.close();
+}
 
 int main() {
 	Node* root = new Node;
-	root->leaf = 0;
-	root->root = 1;
-	insertNode(root, "a");
-	insertNode(root, "b");
-	insertNode(root, "c");
-	insertNode(root, "d");
-	insertNode(root, "e");
-	insertNode(root, "f");
-	insertNode(root, "g");
-	insertNode(root, "j");
-	insertNode(root, "k");
-	insertNode(root, "z");
-	deleteNode(root, "j");
-	deleteNode(root, "k");
-	deleteNode(root, "z");
-	deleteNode(root, "g");
-	deleteNode(root, "f");
-	deleteNode(root, "e");
-	
-	insertNode(root, "i");
-	insertNode(root, "j");
-	insertNode(root, "k");
-	insertNode(root, "z");
-	insertNode(root, "x");
-	insertNode(root, "w");
-	
-	insertNode(root, "y");
-	insertNode(root, "v");
-	insertNode(root, "l");
-	insertNode(root, "f");
-	insertNode(root, "g");
-	
-	//cout << smallerKeys(root, "c");
-	//cout << searchKey(root, "kl");
-	insertNode(root, "h");
-	insertNode(root, "m");
-	insertNode(root, "u");
-	insertNode(root, "n");
-	insertNode(root, "o");
-	insertNode(root, "p");
-	insertNode(root, "q");
-	
-	//if (searchKey(root, "q", pos) == nullptr)cout << "nema ga";
-	//else cout << "jej";
-	
-	//deleteNode(root, "a");
-	//insertNode(root, "j");
-	//deleteNode(root, "b");
-	//deleteNode(root, "d");
-	//deleteNode(root, "i");
-	
-	deleteNode(root, "k"); // KAD BRISE KOREN SAZIMANJE OVDE NEP
-	//deleteNode(root, "j");
-	cout << root;
-	/*Node* root = new Node;
 	root->leaf = 0;
 	root->root = 1;
 	while (1) {
@@ -943,5 +897,5 @@ int main() {
 			exit(1);
 		}
 
-	}*/
+	}
 }
